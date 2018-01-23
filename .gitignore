@@ -1,2 +1,6 @@
 *.pyc
 .owncloudsync.log
+_build
+_static
+_templates
+

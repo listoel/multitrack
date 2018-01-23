@@ -11,6 +11,8 @@ def histscatter(xdata, ydata, save="", xbin=None, ybin=None,
 
     Code based on
     http://matplotlib.org/examples/pylab_examples/scatter_hist.html
+
+    TODO documentation
     """
 
     nullfmt = NullFormatter()         # no labels
@@ -87,6 +89,8 @@ def histscatter(xdata, ydata, save="", xbin=None, ybin=None,
 
 def plotbeam(xdata, ydata, xstart=None, save="", color=None,
              xlabel=r'$\hat{X}\ [1]$', ylabel=r'$\hat{P}\ [\mathrm{rad}]$', clim=[None,None]):
+    """TODO documentation
+    """
     fig, ax = plt.subplots()
 
     if xstart is not None:
@@ -108,7 +112,8 @@ def plotbeam(xdata, ydata, xstart=None, save="", color=None,
 
 def evolplot(tracks, lim, save="", xlabel=r'$\hat{X}\ [1]$',
                 ylabel=r'$\hat{P}\ [\mathrm{rad}]$'):
-
+    """TODO documentation
+    """
     npart = tracks.shape[0]
 
     fig, ax = plt.subplots()

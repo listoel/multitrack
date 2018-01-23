@@ -4,47 +4,97 @@ import numpy as np
 
 from plotting import histscatter, plotbeam
 
-class ExtractIt(Exception): pass
+class ExtractIt(Exception):
+    """Internal exception raised during tracking when the particle is extracted."""
+    pass
 
-# Code probably fails with negative x_wire, check!
+# TODO Code probably fails with negative x_wire, check!
 
 # TODO!!!! Add functionality from sextdectrack small!! (fultrack is true, change track var)
+# (What did this mean?)
 
 # For extracted particles non-normalized coords at zs are given.
-# For non-extracted particles final normalized coorda at s=0 are given.
+# For non-extracted particles final normalized coords at s=0 are given.
 
 def track(ring, beam, extraction=None, epsilonstart=0.0,
           epsilonend=0.0, nturns=10000, npart=10000, seed=0, plots=None,
           fulltrack=False, gaussinit=True,
           xbin=None, ybin=None, xlim=None, ylim=None, clim=[None,None]):
+    """Generate particles from the beam and track them through the ring.
+
+    Parameters
+    ----------
+    ring : multitrack.Ring
+        Ring object to define the machine in which to track.
+    beam : multitrack.Beam
+        Beam object to define the distribution from which to generate
+        initial coordinates.
+    extraction : multitrack.Extraction, optional
+        Extraction object to define the characteristics of the
+        extraction point, or None to avoid extracting.
+    epsilonstart : float, optional
+        :math:`6\\pi\\cdot\\delta Q` at the start of the tune sweep.
+    epsilonend : float, optional
+        :math:`6\\pi\\cdot\\delta Q` at the end of the tune sweep.
+    nturns : int, optional
+        Maximum number of turns for which to track particles. Indirectly
+        determines the tune sweep speed.
+    npart : int, optional
+        Number of particles to track.
+    seed : int, optional
+        Seed with which to initialize the numpy RNGs. (Specify None to
+        use a random seed.)
+    fulltrack : bool, optional
+        True to store full tracks of all particles, or False to store
+        only the most recent coordinate.
+    gaussinit : bool, optional
+        TODO Hacky toggle for beam vs experimental thingy
+    plots :
+        TODO shouldn't really be here...
+    xbin :
+        TODO shouldn't really be here...
+    ybin :
+        TODO shouldn't really be here...
+    xlim :
+        TODO shouldn't really be here...
+    ylim :
+        TODO shouldn't really be here...
+    clim :
+        TODO shouldn't really be here...
+
+    Returns
+    -------
+    :obj:`dict`
+        TODO It's complicated
+    """
     np.random.seed(seed)    
 
     # Normalize based on K2 (virtual sextupole)
     resvirt = 0.0
     imsvirt = 0.0
-    for multipole in ring.multipoles:
-        if 2 in multipole[1]:
-            resvirt += multipole[1][2]*math.cos(3.0*multipole[0])
-            imsvirt += multipole[1][2]*math.sin(3.0*multipole[0])
+    for element in ring.elements:
+        if 2 in element[1]:
+            resvirt += element[1][2]*math.cos(3.0*element[0])
+            imsvirt += element[1][2]*math.sin(3.0*element[0])
     normalization = math.sqrt(resvirt**2+imsvirt**2)
 
     if normalization==0.0:
         print "ERROR: No sextupoles found"
         exit()
 
-    multipoles = [[m[0],{i:m[1][i]/normalization**(i-1) for i in m[1]}]
-                  for m in ring.multipoles]
+    elements = [[m[0],{i:m[1][i]/normalization**(i-1) for i in m[1]}]
+                 for m in ring.elements]
 
-    # Cos and sin of phase advance between multipoles
-    rotcos = [math.cos(multipoles[0][0])]
-    rotcos = rotcos+[math.cos(multipoles[i][0]-multipoles[i-1][0])
-                     for i in range(1,len(multipoles))]
-    rotsin = [math.sin(multipoles[0][0])]
-    rotsin = rotsin+[math.sin(multipoles[i][0]-multipoles[i-1][0])
-                     for i in range(1,len(multipoles))]
+    # Cos and sin of phase advance between elements
+    rotcos = [math.cos(elements[0][0])]
+    rotcos = rotcos+[math.cos(elements[i][0]-elements[i-1][0])
+                     for i in range(1,len(elements))]
+    rotsin = [math.sin(elements[0][0])]
+    rotsin = rotsin+[math.sin(elements[i][0]-elements[i-1][0])
+                     for i in range(1,len(elements))]
 
     # Final rotation to complete the ring at resonance
-    phimul = multipoles[-1][0] % (2*math.pi)
+    phimul = elements[-1][0] % (2*math.pi)
     phifin = (2*math.pi*(1+ring.tune) - phimul) % (2*math.pi)
 
     # Initialize particle momenta and positions
@@ -73,16 +123,16 @@ def track(ring, beam, extraction=None, epsilonstart=0.0,
     iextr = -2
     if extraction is not None:
         iextr = -1
-        for multipole in multipoles:
-            if extraction.mu > multipole[0]:
+        for element in elements:
+            if extraction.mu > element[0]:
                 iextr+=1
 
         if iextr==-1:
             cmuextr = math.cos(extraction.mu)
             smuextr = math.sin(extraction.mu)
         else:
-            cmuextr = math.cos(extraction.mu-multipoles[iextr][0])
-            smuextr = math.sin(extraction.mu-multipoles[iextr][0])
+            cmuextr = math.cos(extraction.mu-elements[iextr][0])
+            smuextr = math.sin(extraction.mu-elements[iextr][0])
 
         alpha = extraction.alpha
         beta = extraction.beta
@@ -108,27 +158,27 @@ def track(ring, beam, extraction=None, epsilonstart=0.0,
         x, p = tracks[part, 0], tracks[part, 1]
         try:
             for turn in range(nturns):
-                # If extraction point is before multipoles, check for extraction first
+                # If extraction point is before elements, check for extraction first
                 if iextr==-1:
                     if np.sign(normalization)*(x*cmuextr+p*smuextr) > wiretests[part]:
                         extractt[part] = turn+1
                         tracks[part, 0] = x
                         tracks[part, 1] = p
                         raise ExtractIt
-                # Then do the multipoles
-                for i, multipole in enumerate(multipoles):
-                    # Rotate to the multipole
+                # Then do the elements
+                for i, element in enumerate(elements):
+                    # Rotate to the element
                     xn = rotcos[i]*x + rotsin[i]*p
                     pn = rotcos[i]*p - rotsin[i]*x
                     x, p = xn, pn
 
                     # Give multipole kick
                     kick = 0
-                    for j, strength in multipole[1].iteritems():
+                    for j, strength in element[1].iteritems():
                         kick += strength*x**j
                     p = p+kick
 
-                    # If extraction point is between here and the next multipole, check for extraction
+                    # If extraction point is between here and the next element, check for extraction
                     if iextr==i:
                         if np.sign(normalization)*(x*cmuextr+p*smuextr) > wiretests[part]:
                             extractt[part] = turn+1
@@ -226,6 +276,8 @@ def track(ring, beam, extraction=None, epsilonstart=0.0,
             'extractt': extractt, 'dpps': dpps}
 
 def printreport(report):
+    """TODO change this.
+    """
     out = ("Percentage of particles extracted: "+str(report['ejectperc'])+"\n"+
            "Percentage of extracted particles hitting wire: "+str(report['hitperc'])+"\n"+
            "Statistical emittance of the new beam: "+str(report['statemit'])+"\n"+
