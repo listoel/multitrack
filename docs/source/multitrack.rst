@@ -12,10 +12,10 @@ multitrack.inputs module
     :undoc-members:
     :show-inheritance:
 
-multitrack.plotting module
---------------------------
+multitrack.dataprocessing module
+--------------------------------
 
-.. automodule:: multitrack.plotting
+.. automodule:: multitrack.dataprocessing
     :members:
     :undoc-members:
     :show-inheritance:

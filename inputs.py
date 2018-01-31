@@ -1,5 +1,7 @@
 from __future__ import division
 import math
+import numpy as np
+import pandas as pd
 
 class Ring:
     """Ring properties for tracking.
@@ -46,6 +48,23 @@ class Ring:
         """
         self.elements = sorted(self.elements+[element],
                                  key=lambda m: m[0])
+
+    def get_normalization(self):
+        """Calculates normalized sextupole strength to normalise phase space.
+
+        Returns
+        -------
+        float
+            The normalized sextupole strength for normalisation of
+            phase space as described in TODO.
+        """
+        resvirt = 0.0
+        imsvirt = 0.0
+        for element in self.elements:
+            if 2 in element[1]:
+                resvirt += element[1][2]*math.cos(3.0*element[0])
+                imsvirt += element[1][2]*math.sin(3.0*element[0])
+        return math.sqrt(resvirt**2+imsvirt**2)
 
 
 class Extraction:
@@ -159,31 +178,53 @@ class Extraction:
                 /math.sqrt(self.beta))
 
 
-class Beam:
-    """Beam parameters for the simulation.
+def get_init(ring, btype="gaussian", scale=math.sqrt(12E-6/426.3156),
+             dpp=0.0015, npart=10000, seed=0):
+    """Beam parameters and particle initialization for the simulation.
         
     Parameters
     ----------
-    sigma : float, optional
-        Standard deviation of the beam to be simulated. (TODO Units?)
+    ring : multitrack.Ring
+        Ring object to define the machine in which to track.
+    btype : string, optional
+        String representing the type of beam distribution. Allowed
+        options are \"gaussian\" or \"explore\".
+    scale : float, optional
+        If btype=gaussian: Standard deviation of the beam to be
+        simulated. (TODO Units?)
+        If btype=explore: (TODO remember scaling rule for this?)
     dpp : float, optional
         Momentum spread of the beam to be simulated. Particles will be
         initialized with :math:`\\frac{\Delta p}{p_0}` uniformly in
         :math:`[-\\texttt{dpp}, \\texttt{dpp}]`.
+    npart : int, optional
+        Number of particles to track. Overridden in case beam.btype=\"explore\".
+    seed : int, optional
+        Seed with which to initialize the numpy RNGs. (Specify None to
+        use a random seed.)
     
-    Attributes
+    Returns
     ----------
-    sigma : float
-        Standard deviation of the beam to be simulated. (TODO Units?)
-    dpp : float
-        Momentum spread of the beam to be simulated. Particles will be
-        initialized with :math:`\\frac{\Delta p}{p_0}` uniformly in
-        :math:`[-\\texttt{dpp}, \\texttt{dpp}]`.
-    type : string
-        String representing the type of beam distribution. Hardcoded to
-        'gaussian' is allowed at the moment.
+    dataframe
+        Initial particle distribution
     """
-    def __init__(self, sigma=math.sqrt(12E-6/426.3156), dpp=0.0015):
-        self.sigma = float(sigma)
-        self.dpp = float(dpp)
-        self.type = "gaussian"
+    normalization = ring.get_normalization()
+
+    if dpp==0.0:
+        dpps = [0.0 for n in range(npart)]
+    else:
+        dpps = np.random.uniform(-dpp, dpp, npart)
+
+    if btype=="gaussian":
+        init = np.random.normal(0, scale*abs(normalization), (npart, 2))
+    elif btype=="explore":
+        init1 = np.array([[0, 0.1*i/scale] for i in range(-15,16)])
+        init2 = np.array([np.dot([[c,s],[-s,c]],v) for v in init1 if v[1]!=0])
+        init = np.concatenate((init1,init2))
+        npart = len(init)
+    else:
+        print 'ERROR: Desired beam type "'+btype+'" not recognized.'
+        exit()
+
+    return pd.DataFrame(data={'X': init[:,0], 'P': init[:,1], 'dpp': dpps})
+
