@@ -4,13 +4,39 @@ from matplotlib.ticker import NullFormatter
 import numpy as np
 import os
 
+# TODO Add dispersion
+def init_to_madx(ring, init, outfile, alpha=0, beta=100):
+    """Write initial particle coordinates to MAD-X init file.
+
+    Parameters
+    ----------
+    ring : multitrack.Ring
+        Ring object with which initial coordinates were generated.
+    init : dataframe
+        Initial particle distribution.
+    outfile : string
+        Filename to which to write the MAD-X tracking initialization.
+    alpha : float, optional
+        Courant-Snyder alpha at the starting point for tracking.
+    beta : float, optional
+        Courant-Snyder beta at the starting point for tracking.
+    """
+    init = init.copy(deep=True)
+    normalization = ring.get_normalization()
+    init['X'] = init['X']/normalization
+    init['P'] = init['P']/normalization
+
+    with open(outfile, 'w') as f:
+        for _, row in init.iterrows():
+            f.write('START, X='+str(np.sqrt(beta)*row['X'])+
+                    ', PX='+str((row['X']-alpha*row['P'])/np.sqrt(beta))+
+                    ', Y=0, PY=0, PT='+str(row['dpp']/(1+row['dpp']))+';\n')
+
 def get_report(tracks, extractt, extraction):
     """Get figures of merit.
 
     Parameters
     ----------
-    Returns tracks, extractt
-    -------
     tracks : array
         [npart x (nturns+1) x 2] array or [npart x 2] array of tracks
         TODO coords at injection/extraction?

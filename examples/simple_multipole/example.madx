@@ -1,0 +1,56 @@
+// 0 Simulation settings
+
+myk2l = 0;
+myk3l = 0;
+myk4l = 0;
+
+
+// 1 Element definitions (all multipoles defined in halves)
+
+ex: MARKER, APERTYPE=RECTANGLE, APERTURE={1.0,1.0}; ! Extraction point
+
+d: DRIFT, L=50/SQRT(3.0);          ! Main drift
+qf: MULTIPOLE, KNL:={0, kqf/2, 0}; ! Focussing quad
+qd: MULTIPOLE, KNL:={0, kqd/2, 0}; ! Defocussing quad
+
+m: MULTIPOLE, KNL:={0, 0, myk2l/2, myk3l/2, myk4l/2}; ! Desired multipole
+
+fodo: LINE = (qf, d, qd, qd, d, qf);
+
+toyring: LINE = (m, m, fodo, ex, fodo);
+
+
+// 2 Initial strengths
+
+kqf = SQRT(3.0)/50;
+kqd = -SQRT(3.0)/50;
+
+
+// 3 Optics plots
+
+BEAM, PARTICLE=PROTON, PC=400;
+USE, SEQUENCE=TOYRING;
+
+TWISS, FILE="./out/madx/toyring_optics_init";
+PLOT, TABLE=TWISS, HAXIS=S, VAXIS1=BETX,BETY, VAXIS2=MUX,MUY, VMIN=30,0, VMAX=110,0.7, COLOUR=100, FILE="./out/madx/plots";
+
+myk2l = -2.0*210/1000;
+USE, SEQUENCE=TOYRING;
+
+TWISS, FILE="./out/madx/toyring_optics_mult";
+PLOT, TABLE=TWISS, HAXIS=S, VAXIS1=BETX,BETY, VAXIS2=MUX,MUY, VMIN=30,0, VMAX=110,0.7, COLOUR=100, FILE="./out/madx/plots";
+
+
+// 4 Tracking
+
+SELECT, FLAG=ERROR, CLEAR;
+SELECT, FLAG=ERROR, RANGE='ex';
+EALIGN, AREX=0.024-1.0;
+
+TRACK, ONEPASS, APERTURE, RECLOSS;
+ CALL, FILE='out/mt/init.madx';
+ RUN, TURNS=1000, FFILE=1000;
+ENDTRACK;
+
+WRITE, TABLE = trackloss, FILE = 'out/madx/losses.tfs';
+
