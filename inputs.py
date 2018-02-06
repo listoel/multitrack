@@ -160,12 +160,12 @@ class Extraction:
             self.pbump = self.pbump*(xbump/self.xbump)
             self.xbump = xbump
 
-    def wiretest(self, k2, dpp):
+    def wiretest(self, normalization, dpp):
         """Find the normalized distance beyond which a particle is extracted.
 
         Parameters
         ----------
-        k2 : float
+        normalization : float
             Normalization constant as explained in TODO. (TODO Units?)
         dpp : float
             Momentum deviation :math:`\\frac{\Delta p}{p_0}` for the
@@ -177,7 +177,7 @@ class Extraction:
             The distance beyond which a particle is lost on the septum
             wires/blade or blade. (In meters.)
         """
-        return (abs(k2)
+        return (normalization
                 *(self.xwire-self.xbump-self.dx*dpp)
                 /math.sqrt(self.beta))
 
@@ -220,7 +220,7 @@ def get_init(ring, btype="gaussian", scale=math.sqrt(12E-6/426.3156),
         dpps = np.random.uniform(-dpp, dpp, npart)
 
     if btype=="gaussian":
-        init = np.random.normal(0, scale*abs(normalization), (npart, 2))
+        init = np.random.normal(0, scale*normalization, (npart, 2))
     elif btype=="explore":
         init1 = np.array([[0, 0.1*i/scale] for i in range(-15,16)])
         init2 = np.array([np.dot([[c,s],[-s,c]],v) for v in init1 if v[1]!=0])
@@ -253,26 +253,21 @@ def simplems(maxkick, xcirc, xextr, beta=100):
         Takes xhat (float) and normalization (float) as input and returns
         the thin massless septum kick in p-hat(float).
     """
-
-
-
-
-
     if xextr>=xcirc:
         def myms(xhat, normalization):
-            if (xhat/normalization*np.sqrt(beta))<=xcirc:
+            x = xhat/normalization*np.sqrt(beta)
+            if x<=xcirc:
                 return 0.0
-            elif (xhat/normalization*np.sqrt(beta))>=xextr:
-                #print 'x='+str(xhat/normalization*np.sqrt(beta))+' max kick'
+            elif x>=xextr:
                 return normalization*np.sqrt(beta)*maxkick
             else:
-                #print 'x='+str(xhat/normalization*np.sqrt(beta))+' medium kick'
                 return normalization*np.sqrt(beta)*maxkick*((xhat/normalization*np.sqrt(beta))-xcirc)/(xextr-xcirc)
     else:
         def myms(xhat, normalization):
-            if (xhat/normalization*np.sqrt(beta))>=xcirc:
+            x = xhat/normalization*np.sqrt(beta)
+            if x>=xcirc:
                 return 0.0
-            elif (xhat/normalization*np.sqrt(beta))<=xextr:
+            elif x<=xextr:
                 return normalization*np.sqrt(beta)*maxkick
             else:
                 return normalization*np.sqrt(beta)*maxkick*((xhat/normalization*np.sqrt(beta))-xcirc)/(xextr-xcirc)

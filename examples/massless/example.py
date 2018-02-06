@@ -12,17 +12,19 @@ import multitrack.dataprocessing as datproc
 xwire = 0.02427
 alphazs=2.358
 betazs=96.78
-muzs = 2*np.pi*(0.106)#0.141
+muzs = 2*np.pi*0.141#0.106#
 
-mag6 = 0.03#0.09
+mag6 = 0.09#0.03#
 beta6 = betazs
 
-strms = -17#-46
-xcircms = 0.0245#0.0177
-xextrms = xcircms+0.0055#0.0085
+strms = -46#-17#
+xcircms = 0.0177#0.0245#
+xextrms = xcircms+0.0085#0.0055#
 betams = betazs
 
-qres = 1.0/3.0 # add tune sweep later 0.33 - 0.334
+qres = 1.0/3.0
+qstart = 0.33
+qend = 0.334
 
 beamvar = 0.4
 nturns = 5000
@@ -37,19 +39,18 @@ extraction = mt.Extraction(alpha=alphazs, beta=betazs, mu=muzs,
                            xwire=xwire, wirethickness=0.0002)
 
 k2 = 1000*mag6*np.sqrt(beta6)
-kick = strms/1E3/np.sqrt(betams)
+kick = strms/1E3/betams
 septum = mt.simplems(kick, xcircms, xextrms, beta=betams)
 
 ring = mt.Ring([[0,{2:k2, -1:septum}]], tune=qres, chroma=0)
-#ring = mt.Ring([[0,{2:k2}]], tune=qres, chroma=0)
 
 sigma = np.sqrt(beamvar)/1000/np.sqrt(beta6)
 init = mt.get_init(ring, btype='gaussian', scale=sigma, dpp=0.0000,
                    npart=npart, seed=0)
 
 tracks, extractt = mt.track(ring, init, extraction=extraction,
-                            epsilonstart=0.0, epsilonend=0.0,
-                            nturns=1000, fulltrack=False)
+                            epsilonstart=6*np.pi*(qstart-qres), epsilonend=6*np.pi*(qend-qres),
+                            nturns=nturns, fulltrack=False)
 
 
 # Some plots

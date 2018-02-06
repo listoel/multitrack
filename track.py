@@ -139,7 +139,7 @@ def track(ring, init, extraction=None, epsilonstart=0.0, epsilonend=0.0,
             for turn in np.arange(nturns)+1:
                 # If extraction point is before elements, check for extraction first
                 if iextr==-1:
-                    if np.sign(normalization)*(x*cmuextr+p*smuextr) > wiretests[part]:
+                    if (x*cmuextr+p*smuextr) > wiretests[part]:
                         extractt[part] = turn
                         if fulltrack:
                             tracks[part, turn, 0] = x
@@ -166,7 +166,7 @@ def track(ring, init, extraction=None, epsilonstart=0.0, epsilonend=0.0,
 
                     # If extraction point is between here and the next element, check for extraction
                     if iextr==i:
-                        if np.sign(normalization)*(x*cmuextr+p*smuextr) > wiretests[part]:
+                        if (x*cmuextr+p*smuextr) > wiretests[part]:
                             extractt[part] = turn
                             #save coords before extraction
                             if fulltrack:
@@ -191,7 +191,7 @@ def track(ring, init, extraction=None, epsilonstart=0.0, epsilonend=0.0,
                     tracks[part, 1] = p
         except ExtractIt:
             if fulltrack:
-                tracks[part, turn] = (np.dot(zstrans, tracks[part, turn-1])
+                tracks[part, turn] = (np.dot(zstrans, tracks[part, turn])
                                         +dispersion*init['dpp'].loc[part]+[xbump, pbump])
             else:
                 tracks[part] = (np.dot(zstrans, tracks[part])
