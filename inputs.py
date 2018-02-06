@@ -45,6 +45,10 @@ class Ring:
             An element, defined by a phase advance in radians since the
             start of the ring and a dictionary of multipole components,
             e.g. [1.57,{2:K_2c,3:K_3c}].
+            Custom (non-multipole) elements can also be added, in this
+            case the dictonary entry should specify a negative integer
+            and a function that takes xhat and the normalizatin as input
+            and the kick in p-hat as output.
         """
         self.elements = sorted(self.elements+[element],
                                  key=lambda m: m[0])
@@ -191,7 +195,7 @@ def get_init(ring, btype="gaussian", scale=math.sqrt(12E-6/426.3156),
         options are \"gaussian\" or \"explore\".
     scale : float, optional
         If btype=gaussian: Standard deviation of the beam to be
-        simulated. (TODO Units?)
+        simulated, in standard normalized phase-space. (TODO Units?)
         If btype=explore: (TODO remember scaling rule for this?)
     dpp : float, optional
         Momentum spread of the beam to be simulated. Particles will be
@@ -227,4 +231,50 @@ def get_init(ring, btype="gaussian", scale=math.sqrt(12E-6/426.3156),
         exit()
 
     return pd.DataFrame(data={'X': init[:,0], 'P': init[:,1], 'dpp': dpps})
+
+
+def simplems(maxkick, xcirc, xextr, beta=100):
+    """Generate a thin simple linear massless septum.
+        
+    Parameters
+    ----------
+    maxkick : float
+        Septum kick at maximum field strength.
+    xcirc : float
+        Real space x position at the zero-field edge of the field rise.
+    xextr : float
+        Real space x position at the full-field edge of the field rise.
+    beta : float
+        Courant-Snyder beta function at the massless septum.
+    
+    Returns
+    ----------
+    function
+        Takes xhat (float) and normalization (float) as input and returns
+        the thin massless septum kick in p-hat(float).
+    """
+
+
+
+
+
+    if xextr>=xcirc:
+        def myms(xhat, normalization):
+            if (xhat/normalization*np.sqrt(beta))<=xcirc:
+                return 0.0
+            elif (xhat/normalization*np.sqrt(beta))>=xextr:
+                #print 'x='+str(xhat/normalization*np.sqrt(beta))+' max kick'
+                return normalization*np.sqrt(beta)*maxkick
+            else:
+                #print 'x='+str(xhat/normalization*np.sqrt(beta))+' medium kick'
+                return normalization*np.sqrt(beta)*maxkick*((xhat/normalization*np.sqrt(beta))-xcirc)/(xextr-xcirc)
+    else:
+        def myms(xhat, normalization):
+            if (xhat/normalization*np.sqrt(beta))>=xcirc:
+                return 0.0
+            elif (xhat/normalization*np.sqrt(beta))<=xextr:
+                return normalization*np.sqrt(beta)*maxkick
+            else:
+                return normalization*np.sqrt(beta)*maxkick*((xhat/normalization*np.sqrt(beta))-xcirc)/(xextr-xcirc)
+    return myms
 

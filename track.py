@@ -11,9 +11,6 @@ class ExtractIt(Exception):
 # TODO!!!! Add functionality from sextdectrack small!! (fulltrack is true, change track var)
 # (What did this mean?)
 
-# TODO Which is actually the correct rotation matrix when positive x is
-# pointing to the left??
-
 # TODO get access to all this stuff
 #    return {'figsofmerit': report, 'init': init, 'finalzs': tracks,
 #            'extractt': extractt}
@@ -65,7 +62,15 @@ def track(ring, init, extraction=None, epsilonstart=0.0, epsilonend=0.0,
         print "ERROR: No sextupoles found."
         exit()
 
-    elements = [[m[0],{i:m[1][i]/normalization**(i-1) for i in m[1]}]
+    def normalize(i,k):
+        if i<0: # Custom function
+            return k
+        elif i==0: # Dipole kick
+            return k*normalization
+        else: # Multipole kick
+            return k/normalization**(i-1)
+
+    elements = [[m[0],{i:normalize(i, m[1][i]) for i in m[1]}]
                  for m in ring.elements]
 
     # Cos and sin of phase advance between elements
@@ -150,10 +155,13 @@ def track(ring, init, extraction=None, epsilonstart=0.0, epsilonend=0.0,
                     pn = rotcos[i]*p - rotsin[i]*x
                     x, p = xn, pn
 
-                    # Give multipole kick
+                    # Give multipole/custom kick
                     kick = 0
                     for j, strength in element[1].iteritems():
-                        kick += strength*x**j
+                        if j<0: # custom kick
+                            kick += strength(x, normalization)
+                        else: #dipole/multipole kick
+                            kick += strength*x**j
                     p = p+kick
 
                     # If extraction point is between here and the next element, check for extraction
