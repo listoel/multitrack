@@ -55,14 +55,21 @@ tracks, extractt = mt.track(ring, init, extraction=extraction,
 
 # Some plots
 
+fulltrack = (tracks.shape[1]!=1)
+
+if fulltrack:
+    turnind = extractt
+else:
+    turnind = [0 for i in extractt]
+
 import matplotlib.pyplot as plt
 npart = len(extractt)
 circ = [i for i in range(npart) if extractt[i]==-1]
 extr = [i for i in range(npart) if extractt[i]!=-1]
-xcirc = [x for i,x in enumerate(tracks[:,0]) if i in circ]
-pcirc = [p for i,p in enumerate(tracks[:,1]) if i in circ]
-xextr = [x for i,x in enumerate(tracks[:,0]) if i in extr]
-pextr = [p for i,p in enumerate(tracks[:,1]) if i in extr]
+xcirc = [tracks[i, turnind[i], 0] for i in circ]
+pcirc = [tracks[i, turnind[i], 1] for i in circ]
+xextr = [tracks[i, turnind[i], 0] for i in extr]
+pextr = [tracks[i, turnind[i], 1] for i in extr]
 print len(extr)
 plt.hist(extractt)
 plt.show()

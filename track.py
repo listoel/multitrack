@@ -8,9 +8,6 @@ class ExtractIt(Exception):
 
 # TODO Code probably fails with negative x_wire, check!
 
-# TODO!!!! Add functionality from sextdectrack small!! (fulltrack is true, change track var)
-# (What did this mean?)
-
 # TODO get access to all this stuff
 #    return {'figsofmerit': report, 'init': init, 'finalzs': tracks,
 #            'extractt': extractt}
@@ -88,12 +85,10 @@ def track(ring, init, extraction=None, epsilonstart=0.0, epsilonend=0.0,
     # Initialize particle momenta and positions
     if fulltrack:
         tracks = np.zeros((npart, nturns+1, 2))
-        tracks[:, 0, 0] = np.copy(init['X'].values)
-        tracks[:, 0, 1] = np.copy(init['P'].values)
     else:
-        tracks = np.empty((npart, 2))
-        tracks[:, 0] = np.copy(init['X'].values)
-        tracks[:, 1] = np.copy(init['P'].values)
+        tracks = np.empty((npart, 1, 2))
+    tracks[:, 0, 0] = np.copy(init['X'].values)
+    tracks[:, 0, 1] = np.copy(init['P'].values)
 
     # Initialize extraction related stuff
     iextr = -2
@@ -131,22 +126,16 @@ def track(ring, init, extraction=None, epsilonstart=0.0, epsilonend=0.0,
         epsilon = epsilonstart
         if ring.chroma is not None:
             epsilon += 6*math.pi*ring.chroma*init['dpp'].loc[part]
-        if fulltrack:
-            x, p = tracks[part, 0, 0], tracks[part, 0, 1]
-        else:
-            x, p = tracks[part, 0], tracks[part, 1]
+        turnind = 0
+        x, p = tracks[part, turnind, 0], tracks[part, turnind, 1]
         try:
             for turn in np.arange(nturns)+1:
+                if fulltrack:
+                    turnind = turn
                 # If extraction point is before elements, check for extraction first
                 if iextr==-1:
                     if (x*cmuextr+p*smuextr) > wiretests[part]:
                         extractt[part] = turn
-                        if fulltrack:
-                            tracks[part, turn, 0] = x
-                            tracks[part, turn, 1] = p
-                        else:
-                            tracks[part, 0] = x
-                            tracks[part, 1] = p
                         raise ExtractIt
                 # Then do the elements
                 for i, element in enumerate(elements):
@@ -168,14 +157,7 @@ def track(ring, init, extraction=None, epsilonstart=0.0, epsilonend=0.0,
                     if iextr==i:
                         if (x*cmuextr+p*smuextr) > wiretests[part]:
                             extractt[part] = turn
-                            #save coords before extraction
-                            if fulltrack:
-                                tracks[part, turn, 0] = x
-                                tracks[part, turn, 1] = p
-                            else:
-                                tracks[part, 0] = x
-                                tracks[part, 1] = p
-                                raise ExtractIt
+                            raise ExtractIt
                 # Then rotate until the end of the ring
                 cosfin = math.cos(phifin+epsilon/3)
                 sinfin = math.sin(phifin+epsilon/3)
@@ -183,19 +165,12 @@ def track(ring, init, extraction=None, epsilonstart=0.0, epsilonend=0.0,
                 pn = cosfin*p - sinfin*x
                 x, p = xn, pn
                 epsilon = epsilon+depsilon
-                if fulltrack:
-                    tracks[part, turn, 0] = x
-                    tracks[part, turn, 1] = p
-                else:
-                    tracks[part, 0] = x
-                    tracks[part, 1] = p
+                tracks[part, turnind, 0] = x
+                tracks[part, turnind, 1] = p
         except ExtractIt:
-            if fulltrack:
-                tracks[part, turn] = (np.dot(zstrans, tracks[part, turn])
-                                        +dispersion*init['dpp'].loc[part]+[xbump, pbump])
-            else:
-                tracks[part] = (np.dot(zstrans, tracks[part])
-                                +dispersion*init['dpp'].loc[part]+[xbump, pbump])
+            tracks[part, turnind] = (np.dot(zstrans, [x, p])
+                                     +dispersion*init['dpp'].loc[part]
+                                     +[xbump, pbump])
 
     return tracks, extractt
 

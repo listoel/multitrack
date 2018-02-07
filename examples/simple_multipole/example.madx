@@ -1,5 +1,7 @@
 // 0 Simulation settings
 
+fulltrack = 1;
+
 myk2l = 0;
 myk3l = 0;
 myk4l = 0;
@@ -47,10 +49,18 @@ SELECT, FLAG=ERROR, CLEAR;
 SELECT, FLAG=ERROR, RANGE='ex';
 EALIGN, AREX=0.024-1.0;
 
-TRACK, ONEPASS, APERTURE, RECLOSS;
- CALL, FILE='out/mt/init.madx';
- RUN, TURNS=1000, FFILE=1000;
-ENDTRACK;
+IF (fulltrack==0) {
+ TRACK, ONEPASS, APERTURE, RECLOSS;
+  CALL, FILE='out/mt/init.madx';
+  RUN, TURNS=1000, FFILE=1000;
+ ENDTRACK;
+}
+ELSE {
+ TRACK, ONEPASS, APERTURE, RECLOSS, FILE='out/madx/tracks/track';
+  CALL, FILE='out/mt/init.madx';
+  RUN, TURNS=1000, FFILE=1;
+ ENDTRACK;
+}
 
 WRITE, TABLE = trackloss, FILE = 'out/madx/losses.tfs';
 

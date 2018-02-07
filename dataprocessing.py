@@ -53,20 +53,25 @@ def get_report(tracks, extractt, extraction):
         TODO It's complicated
     """
     npart = len(extractt)
-    fulltrack = (len(tracks.shape)==3)
+    fulltrack = (tracks.shape[1]!=1)
+
+    if fulltrack:
+        turnind = extractt
+    else:
+        turnind = [0 for i in extractt]
 
     # ejected=no longer circulating, extracted=also did not hit septum
     remaining = [i for i in range(npart) if extractt[i] == -1]
     ejected = [i for i in range(npart) if extractt[i] != -1]
     extracted = [i for i in ejected
-                 if (tracks[i, 0] > extraction.xwire+extraction.wirethickness)]
+                 if (tracks[i, turnind[i], 0] > extraction.xwire+extraction.wirethickness)]
 
-    rex = [tracks[i, 0] for i in remaining]
-    rep = [tracks[i, 1] for i in remaining]
-    ejx = [tracks[i, 0] for i in ejected]
-    ejp = [tracks[i, 1] for i in ejected]
-    exx = [tracks[i, 0] for i in extracted]
-    exp = [tracks[i, 1] for i in extracted]
+    rex = [tracks[i, turnind[i], 0] for i in remaining]
+    rep = [tracks[i, turnind[i], 1] for i in remaining]
+    ejx = [tracks[i, turnind[i], 0] for i in ejected]
+    ejp = [tracks[i, turnind[i], 1] for i in ejected]
+    exx = [tracks[i, turnind[i], 0] for i in extracted]
+    exp = [tracks[i, turnind[i], 1] for i in extracted]
 
     # Calculate figures of merit
     ejectperc = 100.0*len(ejected)/npart
