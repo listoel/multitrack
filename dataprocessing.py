@@ -29,7 +29,7 @@ def init_to_madx(ring, init, outfile, alpha=0, beta=100):
     with open(outfile, 'w') as f:
         for _, row in init.iterrows():
             f.write('START, X='+str(np.sqrt(beta)*row['X'])+
-                    ', PX='+str((row['X']-alpha*row['P'])/np.sqrt(beta))+
+                    ', PX='+str((row['P']-alpha*row['X'])/np.sqrt(beta))+
                     ', Y=0, PY=0, PT='+str(row['dpp']/(1+row['dpp']))+';\n')
 
 def get_report(tracks, extractt, extraction):

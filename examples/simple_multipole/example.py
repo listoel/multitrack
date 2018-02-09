@@ -11,6 +11,10 @@ import multitrack.dataprocessing as datproc
 #Settings
 
 use_fulltrack = True
+npart=9999
+nturns = 1000
+
+pyk2l = 210
 
 alpha_init = 0
 beta_init = 100
@@ -22,17 +26,16 @@ extraction = mt.Extraction(alpha=0, beta=100, mu=np.pi/3,
                            dx=0, dp=0, xbump=0, pbump=0,
                            xwire=0.024, wirethickness=0.0002)
 
-ring = mt.Ring([[0,{2:210}]], tune=2.0/3, chroma=0)
+ring = mt.Ring([[0,{2:pyk2l}]], tune=2.0/3, chroma=0)
 
 init = mt.get_init(ring, btype='gaussian', scale=2E-4, dpp=0.0000,
-                   npart=9999, seed=0)
-                   #npart=100, seed=0)
+                   npart=npart, seed=0)
 
 datproc.init_to_madx(ring, init, './out/mt/init.madx', alpha=0, beta=100)
 
 tracks, extractt = mt.track(ring, init, extraction=extraction,
                             epsilonstart=0.0, epsilonend=0.0,
-                            nturns=1000, fulltrack=use_fulltrack)
+                            nturns=nturns, fulltrack=use_fulltrack)
 
 # Hacky plotting
 

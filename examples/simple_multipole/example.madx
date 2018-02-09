@@ -1,10 +1,11 @@
 // 0 Simulation settings
 
 fulltrack = 1;
+nturns = 1000;
 
-myk2l = 0;
-myk3l = 0;
-myk4l = 0;
+pyk2l = 210;
+pyk3l = 0;
+pyk4l = 0;
 
 
 // 1 Element definitions (all multipoles defined in halves)
@@ -19,7 +20,7 @@ m: MULTIPOLE, KNL:={0, 0, myk2l/2, myk3l/2, myk4l/2}; ! Desired multipole
 
 fodo: LINE = (qf, d, qd, qd, d, qf);
 
-toyring: LINE = (m, m, fodo, ex, fodo);
+toyring: LINE = (m, m, fodo, ex, fodo, fodo, fodo);
 
 
 // 2 Initial strengths
@@ -36,7 +37,9 @@ USE, SEQUENCE=TOYRING;
 TWISS, FILE="./out/madx/toyring_optics_init";
 PLOT, TABLE=TWISS, HAXIS=S, VAXIS1=BETX,BETY, VAXIS2=MUX,MUY, VMIN=30,0, VMAX=110,0.7, COLOUR=100, FILE="./out/madx/plots";
 
-myk2l = -2.0*210/1000;
+myk2l = -2.0*pyk2l/1000;
+myk4l = -6.0*pyk3l/10000;
+myk6l = -24.0*pyk4l/100000;
 USE, SEQUENCE=TOYRING;
 
 TWISS, FILE="./out/madx/toyring_optics_mult";
@@ -45,6 +48,8 @@ PLOT, TABLE=TWISS, HAXIS=S, VAXIS1=BETX,BETY, VAXIS2=MUX,MUY, VMIN=30,0, VMAX=11
 
 // 4 Tracking
 
+VALUE, myk2l, myk3l, myk4l;
+
 SELECT, FLAG=ERROR, CLEAR;
 SELECT, FLAG=ERROR, RANGE='ex';
 EALIGN, AREX=0.024-1.0;
@@ -52,15 +57,38 @@ EALIGN, AREX=0.024-1.0;
 IF (fulltrack==0) {
  TRACK, ONEPASS, APERTURE, RECLOSS;
   CALL, FILE='out/mt/init.madx';
-  RUN, TURNS=1000, FFILE=1000;
+  RUN, TURNS=nturns, FFILE=nturns;
  ENDTRACK;
 }
 ELSE {
+ SYSTEM, "rm ./out/madx/tracks/*";
  TRACK, ONEPASS, APERTURE, RECLOSS, FILE='out/madx/tracks/track';
   CALL, FILE='out/mt/init.madx';
-  RUN, TURNS=1000, FFILE=1;
+  RUN, TURNS=nturns, FFILE=1;
  ENDTRACK;
 }
 
 WRITE, TABLE = trackloss, FILE = 'out/madx/losses.tfs';
+
+// 5 Quick test orientation rotation phase space
+
+myk2l = 0;
+myk3l = 0;
+myk4l = 0;
+
+SAVEBETA, LABEL=init, PLACE=#S;
+TWISS;
+
+XNORM := TABLE(TWISS,X)/sqrt(TABLE(TWISS,BETX));
+PXNORM := TABLE(TWISS,ALPHA)*TABLE(TWISS,X)/sqrt(TABLE(TWISS,BETX)) + TABLE(TWISS,PX)*sqrt(TABLE(TWISS,BETX));
+
+SELECT, FLAG=TWISS, CLEAR;
+SELECT, FLAG=TWISS, COLUMN = NAME, MUX, X, PX, XNORM, PXNORM;
+TWISS, BETA0=init, X=0.001, FILE="./out/madx/rot_test";
+
+
+
+
+
+
 
