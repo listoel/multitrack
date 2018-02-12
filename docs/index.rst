@@ -9,7 +9,9 @@ Contents:
    :maxdepth: 2
 
    readme
+   todo
    tutorial
+   source/modules
 
 
 Introduction

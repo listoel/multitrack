@@ -1,9 +1,10 @@
 import csv
 import io
+from matplotlib import cm
 import matplotlib.pyplot as plt
 import numpy as np
-import pandas as pd
 from os import listdir
+import pandas as pd
 
 pylossfile = './out/mt/losses.dat'
 madxlossfile = './out/madx/losses.tfs'
@@ -52,7 +53,9 @@ if fulltrack:
         output.seek(0)
         madxtracks = pd.read_csv(output, names = colnames)
 
-# Make some graphs (also plot diffs?)
+# Make some graphs
+cmap = cm.get_cmap('viridis')
+
 # Turn number extracted
 f, (ax1, ax2) = plt.subplots(1, 2)
 
@@ -63,45 +66,55 @@ plt.show()
 
 # Extracted beam
 xlim = (0.023,0.041)
-ylim = (-120E-6,-80E-6)
+ylim = (-125E-6,-80E-6)
 f, (ax1, ax2) = plt.subplots(1, 2, sharex=True, sharey=True)
 
 if not madxloss.empty:
-    madxloss.plot.scatter('X','PX', ax=ax1, xlim=xlim, ylim=ylim)
+    madxloss.plot.scatter('X', 'PX', c='PT', cmap=cmap, ax=ax1, xlim=xlim, ylim=ylim)
 if not pyloss.empty:
-    pyloss.plot.scatter('X','PX', ax=ax2, xlim=xlim, ylim=ylim)
+    pyloss.plot.scatter('X', 'PX', c='PT', cmap=cmap, ax=ax2, xlim=xlim, ylim=ylim)
 
 plt.show()
 
 # Circulating beam
 if fulltrack:
+    xlim = (-0.03,0.035)
+    ylim = (-3.5E-4,1.5E-4)
     f, (ax1, ax2) = plt.subplots(1, 2, sharex=True, sharey=True)
 
-    madxtracks.plot.scatter('X','PX', ax=ax1)
-    pytracks.plot.scatter('X','PX', ax=ax2)
+    madxtracks.plot.scatter('X', 'PX', c='PT', cmap=cmap, ax=ax1, xlim=xlim, ylim=ylim)
+    pytracks.plot.scatter('X', 'PX', c='PT', cmap=cmap, ax=ax2, xlim=xlim, ylim=ylim)
 
     plt.show()
 
 # Initial conditions
 if fulltrack:
+    xlim = (-0.01,0.01)
+    ylim = (-1.5E-4,1.5E-4)
     f, (ax1, ax2) = plt.subplots(1, 2, sharex=True, sharey=True)
 
-    madxtracks[madxtracks['TURN']==0].plot.scatter('X','PX', ax=ax1)
-    pytracks[pytracks['TURN']==0].plot.scatter('X','PX', ax=ax2)
+    madxtracks[madxtracks['TURN']==0].plot.scatter('X', 'PX', c='PT', cmap=cmap, ax=ax1, xlim=xlim, ylim=ylim)
+    pytracks[pytracks['TURN']==0].plot.scatter('X', 'PX', c='PT', cmap=cmap, ax=ax2, xlim=xlim, ylim=ylim)
 
     plt.show()
 
 # Brag about stats
 if not (madxloss.empty or pyloss.empty):
+    xlim = (-0.017,0.017)
+    ylim = (-3E-5,3E-5)
     x = madxloss['X'] - pyloss['X']
     y = madxloss['PX'] - pyloss['PX']
-    pd.concat([x, y], axis=1).plot.scatter('X','PX')
+    pd.concat([x, y, pyloss['PT']], axis=1).plot.scatter('X', 'PX', c='PT', cmap=cmap, xlim=xlim, ylim=ylim)
     plt.show()
 
 if fulltrack:
-    x = (madxtracks.set_index(['NUMBER','TURN']))['X'] - (pytracks.set_index(['NUMBER','TURN']))['X']
-    y = (madxtracks.set_index(['NUMBER','TURN']))['PX'] - (pytracks.set_index(['NUMBER','TURN']))['PX']
-    pd.concat([x, y], axis=1).plot.scatter('X','PX')
+    xlim = (-0.03,0.03)
+    ylim = (-4E-4,4E-4)
+    madxtracks.set_index(['NUMBER','TURN'], inplace=True)
+    pytracks.set_index(['NUMBER','TURN'], inplace=True)
+    x = madxtracks['X'] - pytracks['X']
+    y = madxtracks['PX'] - pytracks['PX']
+    pd.concat([x, y, pytracks['PT']], axis=1).plot.scatter('X', 'PX', c='PT', cmap=cmap, xlim=xlim, ylim=ylim)
     plt.show()
     
 

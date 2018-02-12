@@ -49,7 +49,7 @@ init = mt.get_init(ring, btype='gaussian', scale=sigma, dpp=0.0000,
                    npart=npart, seed=0)
 
 tracks, extractt = mt.track(ring, init, extraction=extraction,
-                            epsilonstart=6*np.pi*(qstart-qres), epsilonend=6*np.pi*(qend-qres),
+                            dqstart=(qstart-qres), dqend=(qend-qres),
                             nturns=nturns, fulltrack=False)
 
 

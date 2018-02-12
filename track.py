@@ -17,7 +17,7 @@ class ExtractIt(Exception):
 # For extracted particles non-normalized coords at zs are given.
 # For non-extracted particles final normalized coords at s=0 are given.
 
-def track(ring, init, extraction=None, epsilonstart=0.0, epsilonend=0.0,
+def track(ring, init, extraction=None, dqstart=0.0, dqend=0.0,
           nturns=10000, fulltrack=False):
     """Generate particles from the beam and track them through the ring.
 
@@ -30,10 +30,10 @@ def track(ring, init, extraction=None, epsilonstart=0.0, epsilonend=0.0,
     extraction : multitrack.Extraction, optional
         Extraction object to define the characteristics of the
         extraction point, or None to avoid extracting.
-    epsilonstart : float, optional
-        :math:`6\\pi\\cdot\\delta Q` at the start of the tune sweep.
-    epsilonend : float, optional
-        :math:`6\\pi\\cdot\\delta Q` at the end of the tune sweep.
+    dqstart : float, optional
+        :math:`delta Q` at the start of the tune sweep.
+    dqend : float, optional
+        :math:`delta Q` at the end of the tune sweep.
     nturns : int, optional
         Maximum number of turns for which to track particles. Indirectly
         determines the tune sweep speed.
@@ -53,6 +53,11 @@ def track(ring, init, extraction=None, epsilonstart=0.0, epsilonend=0.0,
     """  
     npart = init.shape[0]
 
+    phifin = (2*math.pi*ring.tune - ring.elements[-1][0])
+    if phifin<0.0:
+        print "ERROR: Final multipole beyond end of ring."
+        exit()
+
     # Normalize based on K2 (virtual sextupole)
     normalization = ring.get_normalization()
     if normalization==0.0:
@@ -70,18 +75,6 @@ def track(ring, init, extraction=None, epsilonstart=0.0, epsilonend=0.0,
     elements = [[m[0],{i:normalize(i, m[1][i]) for i in m[1]}]
                  for m in ring.elements]
 
-    # Cos and sin of phase advance between elements
-    rotcos = [math.cos(elements[0][0])]
-    rotcos = rotcos+[math.cos(elements[i][0]-elements[i-1][0])
-                     for i in range(1,len(elements))]
-    rotsin = [math.sin(elements[0][0])]
-    rotsin = rotsin+[math.sin(elements[i][0]-elements[i-1][0])
-                     for i in range(1,len(elements))]
-
-    # Final rotation to complete the ring at resonance
-    phimul = elements[-1][0] % (2*math.pi)
-    phifin = (2*math.pi*(1+ring.tune) - phimul) % (2*math.pi)
-
     # Initialize particle momenta and positions
     if fulltrack:
         tracks = np.zeros((npart, nturns+1, 2))
@@ -98,19 +91,10 @@ def track(ring, init, extraction=None, epsilonstart=0.0, epsilonend=0.0,
             if extraction.mu > element[0]:
                 iextr+=1
 
-        if iextr==-1:
-            cmuextr = math.cos(extraction.mu)
-            smuextr = math.sin(extraction.mu)
-        else:
-            cmuextr = math.cos(extraction.mu-elements[iextr][0])
-            smuextr = math.sin(extraction.mu-elements[iextr][0])
-
         alpha = extraction.alpha
         beta = extraction.beta
         denorm = np.array(((math.sqrt(beta), 0),
                            (-alpha/math.sqrt(beta), 1/math.sqrt(beta))))
-        rotate = np.array(((cmuextr, smuextr), (-smuextr, cmuextr)))
-        zstrans = np.dot(denorm, rotate/normalization)
         dispersion = np.array((extraction.dx,extraction.dp))
 
         xbump = extraction.xbump
@@ -121,13 +105,44 @@ def track(ring, init, extraction=None, epsilonstart=0.0, epsilonend=0.0,
         extractt = [-1 for i in range(npart)]
 
     # Track particles
-    depsilon = (epsilonend-epsilonstart)/nturns
+    tpdq_step = 2*math.pi*(dqend-dqstart)/nturns
     for part in range(npart):
-        epsilon = epsilonstart
+
+        mydpp = init['dpp'].loc[part]
+        myinvdpp = 1/(1+mydpp)
+
+        tpdq = 2*math.pi*dqstart
         if ring.chroma is not None:
-            epsilon += 6*math.pi*ring.chroma*init['dpp'].loc[part]
+            tpdq += 2*math.pi*ring.chroma*mydpp
+
         turnind = 0
         x, p = tracks[part, turnind, 0], tracks[part, turnind, 1]
+
+        phasemod = 1.0
+        if ring.chroma is not None:
+            phasemod = 1.0 + ring.chroma/ring.tune*mydpp
+
+        # Cos and sin of phase advance between elements
+        rotcos = [math.cos(elements[0][0]*phasemod)]
+        rotcos = rotcos+[math.cos((elements[i][0]-elements[i-1][0])*phasemod)
+                         for i in range(1,len(elements))]
+        rotsin = [math.sin(elements[0][0]*phasemod)]
+        rotsin = rotsin+[math.sin((elements[i][0]-elements[i-1][0])*phasemod)
+                         for i in range(1,len(elements))]
+
+        # And for the extraction
+        if extraction is not None:
+            if iextr==-1:
+                cmuextr = math.cos(extraction.mu*phasemod)
+                smuextr = math.sin(extraction.mu*phasemod)
+            else:
+                cmuextr = math.cos((extraction.mu-elements[iextr][0])*phasemod)
+                smuextr = math.sin((extraction.mu-elements[iextr][0])*phasemod)
+
+        # And for final rotation to complete the ring at resonance
+        cosfin = math.cos(phifin*phasemod)
+        sinfin = math.sin(phifin*phasemod)
+
         try:
             for turn in np.arange(nturns)+1:
                 if fulltrack:
@@ -151,7 +166,7 @@ def track(ring, init, extraction=None, epsilonstart=0.0, epsilonend=0.0,
                             kick += strength(x, normalization)
                         else: #dipole/multipole kick
                             kick += strength*x**j
-                    p = p+kick
+                    p = p+kick*myinvdpp
 
                     # If extraction point is between here and the next element, check for extraction
                     if iextr==i:
@@ -159,17 +174,17 @@ def track(ring, init, extraction=None, epsilonstart=0.0, epsilonend=0.0,
                             extractt[part] = turn
                             raise ExtractIt
                 # Then rotate until the end of the ring
-                cosfin = math.cos(phifin+epsilon/3)
-                sinfin = math.sin(phifin+epsilon/3)
                 xn = cosfin*x + sinfin*p
                 pn = cosfin*p - sinfin*x
                 x, p = xn, pn
-                epsilon = epsilon+depsilon
+                tpdq += tpdq_step
                 tracks[part, turnind, 0] = x
                 tracks[part, turnind, 1] = p
         except ExtractIt:
+            rotate = np.array(((cmuextr, smuextr), (-smuextr, cmuextr)))
+            zstrans = np.dot(denorm, rotate/normalization)
             tracks[part, turnind] = (np.dot(zstrans, [x, p])
-                                     +dispersion*init['dpp'].loc[part]
+                                     +dispersion*mydpp
                                      +[xbump, pbump])
 
     return tracks, extractt

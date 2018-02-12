@@ -183,7 +183,7 @@ class Extraction:
 
 
 def get_init(ring, btype="gaussian", scale=math.sqrt(12E-6/426.3156),
-             dpp=0.0015, npart=10000, seed=0):
+             dpp=0.0015, dpp_offset=0, npart=10000, seed=0):
     """Beam parameters and particle initialization for the simulation.
         
     Parameters
@@ -200,7 +200,10 @@ def get_init(ring, btype="gaussian", scale=math.sqrt(12E-6/426.3156),
     dpp : float, optional
         Momentum spread of the beam to be simulated. Particles will be
         initialized with :math:`\\frac{\Delta p}{p_0}` uniformly in
-        :math:`[-\\texttt{dpp}, \\texttt{dpp}]`.
+        :math:`[\\texttt{dpp\\_offset}-\\texttt{dpp}, \\texttt{dpp\\_offset}+\\texttt{dpp}]`.
+    dpp_offset : float, optional
+        Momentum offset of the beam to be simulated. Centre of the uniform
+        distribution from which :math:`\\frac{\Delta p}{p_0}` is initialized.
     npart : int, optional
         Number of particles to track. Overridden in case beam.btype=\"explore\".
     seed : int, optional
@@ -217,7 +220,7 @@ def get_init(ring, btype="gaussian", scale=math.sqrt(12E-6/426.3156),
     if dpp==0.0:
         dpps = [0.0 for n in range(npart)]
     else:
-        dpps = np.random.uniform(-dpp, dpp, npart)
+        dpps = np.random.uniform(dpp_offset-dpp, dpp_offset+dpp, npart)
 
     if btype=="gaussian":
         init = np.random.normal(0, scale*normalization, (npart, 2))
