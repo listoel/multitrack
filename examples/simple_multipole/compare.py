@@ -66,7 +66,7 @@ plt.show()
 
 # Extracted beam
 xlim = (0.023,0.041)
-ylim = (-125E-6,-80E-6)
+ylim = (-175E-6,-35E-6)
 f, (ax1, ax2) = plt.subplots(1, 2, sharex=True, sharey=True)
 
 if not madxloss.empty:
@@ -79,7 +79,7 @@ plt.show()
 # Circulating beam
 if fulltrack:
     xlim = (-0.03,0.035)
-    ylim = (-3.5E-4,1.5E-4)
+    ylim = (-3.8E-4,1.7E-4)
     f, (ax1, ax2) = plt.subplots(1, 2, sharex=True, sharey=True)
 
     madxtracks.plot.scatter('X', 'PX', c='PT', cmap=cmap, ax=ax1, xlim=xlim, ylim=ylim)

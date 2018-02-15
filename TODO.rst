@@ -18,9 +18,11 @@ Inner workings of the code
 --------------------------
 * Transition to pandas for tracks? (Performance?)
 * Change output format for tracking?
+* Discard strength 0 multipole components for speed
 
 
 Other features
 --------------
 * Proper data processing tools
 * Extraction septum with length for losses (separate losses in output?)
+* Displacement inside multipoles

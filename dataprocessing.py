@@ -5,7 +5,7 @@ import numpy as np
 import os
 
 # TODO Add dispersion
-def init_to_madx(ring, init, outfile, alpha=0, beta=100):
+def init_to_madx(ring, init, outfile, alpha=0, beta=100, dx=0, dp=0):
     """Write initial particle coordinates to MAD-X init file.
 
     Parameters
@@ -28,8 +28,10 @@ def init_to_madx(ring, init, outfile, alpha=0, beta=100):
 
     with open(outfile, 'w') as f:
         for _, row in init.iterrows():
-            f.write('START, X='+str(np.sqrt(beta)*row['X'])+
-                    ', PX='+str((row['P']-alpha*row['X'])/np.sqrt(beta))+
+            x = row['X'] + dx*row['dpp']
+            p = row['P'] + dp*row['dpp']
+            f.write('START, X='+str(np.sqrt(beta)*x)+
+                    ', PX='+str((p-alpha*x)/np.sqrt(beta))+
                     ', Y=0, PY=0, PT='+str(row['dpp']/(1+row['dpp']))+';\n')
 
 def get_report(tracks, extractt, extraction):

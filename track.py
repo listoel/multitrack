@@ -58,6 +58,11 @@ def track(ring, init, extraction=None, dqstart=0.0, dqend=0.0,
         print "ERROR: Final multipole beyond end of ring."
         exit()
 
+    # Add missing zero dispersion for ring elements
+    elements = [m if len(m)==3 else [m[0],m[1],[0,0]]
+                for m in ring.elements]
+
+
     # Normalize based on K2 (virtual sextupole)
     normalization = ring.get_normalization()
     if normalization==0.0:
@@ -72,8 +77,8 @@ def track(ring, init, extraction=None, dqstart=0.0, dqend=0.0,
         else: # Multipole kick
             return k/normalization**(i-1)
 
-    elements = [[m[0],{i:normalize(i, m[1][i]) for i in m[1]}]
-                 for m in ring.elements]
+    elements = [[m[0],{i:normalize(i, m[1][i]) for i in m[1]},
+                 np.array(m[2])*normalization] for m in elements]
 
     # Initialize particle momenta and positions
     if fulltrack:
@@ -95,7 +100,7 @@ def track(ring, init, extraction=None, dqstart=0.0, dqend=0.0,
         beta = extraction.beta
         denorm = np.array(((math.sqrt(beta), 0),
                            (-alpha/math.sqrt(beta), 1/math.sqrt(beta))))
-        dispersion = np.array((extraction.dx,extraction.dp))
+        disp_extr = np.array((extraction.dx,extraction.dp))
 
         xbump = extraction.xbump
         pbump = extraction.pbump
@@ -110,6 +115,9 @@ def track(ring, init, extraction=None, dqstart=0.0, dqend=0.0,
 
         mydpp = init['dpp'].loc[part]
         myinvdpp = 1/(1+mydpp)
+
+        mydx = [m[2][0]*mydpp for m in elements]
+        mydp = [m[2][1]*mydpp for m in elements]
 
         tpdq = 2*math.pi*dqstart
         if ring.chroma is not None:
@@ -163,9 +171,9 @@ def track(ring, init, extraction=None, dqstart=0.0, dqend=0.0,
                     kick = 0
                     for j, strength in element[1].iteritems():
                         if j<0: # custom kick
-                            kick += strength(x, normalization)
+                            kick += strength(x+mydx[i], normalization)
                         else: #dipole/multipole kick
-                            kick += strength*x**j
+                            kick += strength*(x+mydx[i])**j
                     p = p+kick*myinvdpp
 
                     # If extraction point is between here and the next element, check for extraction
@@ -184,7 +192,7 @@ def track(ring, init, extraction=None, dqstart=0.0, dqend=0.0,
             rotate = np.array(((cmuextr, smuextr), (-smuextr, cmuextr)))
             zstrans = np.dot(denorm, rotate/normalization)
             tracks[part, turnind] = (np.dot(zstrans, [x, p])
-                                     +dispersion*mydpp
+                                     +disp_extr*mydpp
                                      +[xbump, pbump])
 
     return tracks, extractt

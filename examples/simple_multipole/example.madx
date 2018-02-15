@@ -1,6 +1,7 @@
 // 0 Simulation settings
 
 fulltrack = 1;
+dispersion = 1;
 nturns = 1000;
 
 pyk2l = 210;
@@ -12,7 +13,13 @@ pyk4l = 0;
 
 ex: MARKER, APERTYPE=RECTANGLE, APERTURE={1.0,1.0}; ! Extraction point
 
-d: DRIFT, L=50/SQRT(3.0);          ! Main drift
+IF (dispersion==0) {
+ d: DRIFT, L=50/SQRT(3.0);                ! Main drift
+}
+ELSE {
+ d: SBEND, L=50/SQRT(3.0), ANGLE:=PI/320; ! Main bend
+}
+
 qf: MULTIPOLE, KNL:={0, kqf/2, 0}; ! Focussing quad
 qd: MULTIPOLE, KNL:={0, kqd/2, 0}; ! Defocussing quad
 
@@ -20,7 +27,7 @@ m: MULTIPOLE, KNL:={0, 0, myk2l/2, myk3l/2, myk4l/2}; ! Desired multipole
 
 fodo: LINE = (qf, d, qd, qd, d, qf);
 
-toyring: LINE = (m, m, fodo, ex, fodo, fodo, fodo);
+toyring: LINE = (m, m, fodo, ex, 3*fodo);
 
 
 // 2 Initial strengths
@@ -28,13 +35,39 @@ toyring: LINE = (m, m, fodo, ex, fodo, fodo, fodo);
 kqf = SQRT(3.0)/50;
 kqd = -SQRT(3.0)/50;
 
-
-// 3 Optics plots
-
 BEAM, PARTICLE=PROTON, PC=400;
-USE, SEQUENCE=TOYRING;
+USE, SEQUENCE=toyring;
+
+
+// 3 Matching
 
 TWISS, FILE="./out/madx/toyring_optics_init";
+PLOT, TABLE=TWISS, HAXIS=S, VAXIS1=BETX,BETY, VAXIS2=MUX,MUY, VMIN=30,0, VMAX=110,0.7, COLOUR=100, FILE="./out/madx/plots";
+
+MATCH, SEQUENCE=toyring;
+ VARY, NAME=kqf, STEP=1E-7;
+ VARY, NAME=kqd, STEP=1E-7;
+ CONSTRAINT, RANGE=#E, BETX=100;
+ CONSTRAINT, RANGE=#E, MUX=2/3.0;
+ JACOBIAN, CALLS=100, TOLERANCE=1E-30;
+ENDMATCH;
+
+SELECT, FLAG=MAKETHIN, CLASS=SBEND, SLICE=6;
+MAKETHIN, SEQUENCE=toyring;
+USE, SEQUENCE=toyring;
+
+MATCH, SEQUENCE=toyring;
+ VARY, NAME=kqf, STEP=1E-7;
+ VARY, NAME=kqd, STEP=1E-7;
+ CONSTRAINT, RANGE=#E, BETX=100;
+ CONSTRAINT, RANGE=#E, MUX=2/3.0;
+ JACOBIAN, CALLS=100, TOLERANCE=1E-30;
+ENDMATCH;
+
+
+// 4 Optics plots
+
+TWISS, FILE="./out/madx/toyring_optics_match";
 PLOT, TABLE=TWISS, HAXIS=S, VAXIS1=BETX,BETY, VAXIS2=MUX,MUY, VMIN=30,0, VMAX=110,0.7, COLOUR=100, FILE="./out/madx/plots";
 
 myk2l = -2.0*pyk2l/1000;
@@ -46,7 +79,7 @@ TWISS, FILE="./out/madx/toyring_optics_mult";
 PLOT, TABLE=TWISS, HAXIS=S, VAXIS1=BETX,BETY, VAXIS2=MUX,MUY, VMIN=30,0, VMAX=110,0.7, COLOUR=100, FILE="./out/madx/plots";
 
 
-// 4 Tracking
+// 5 Tracking
 
 VALUE, myk2l, myk3l, myk4l;
 
@@ -54,39 +87,22 @@ SELECT, FLAG=ERROR, CLEAR;
 SELECT, FLAG=ERROR, RANGE='ex';
 EALIGN, AREX=0.024-1.0;
 
+SYSTEM, "rm ./out/madx/tracks/*";
+
 IF (fulltrack==0) {
  TRACK, ONEPASS, APERTURE, RECLOSS;
   CALL, FILE='out/mt/init.madx';
-  RUN, TURNS=nturns, FFILE=nturns;
+  RUN, TURNS=nturns, MAXAPER={1.0,1.0,1.0,1.0,nturns,1.0}, FFILE=nturns;
  ENDTRACK;
 }
 ELSE {
- SYSTEM, "rm ./out/madx/tracks/*";
  TRACK, ONEPASS, APERTURE, RECLOSS, FILE='out/madx/tracks/track';
   CALL, FILE='out/mt/init.madx';
-  RUN, TURNS=nturns, FFILE=1;
+  RUN, TURNS=nturns, MAXAPER={1.0,1.0,1.0,1.0,nturns,1.0}, FFILE=1;
  ENDTRACK;
 }
 
 WRITE, TABLE = trackloss, FILE = 'out/madx/losses.tfs';
-
-// 5 Quick test orientation rotation phase space
-
-myk2l = 0;
-myk3l = 0;
-myk4l = 0;
-
-SAVEBETA, LABEL=init, PLACE=#S;
-TWISS;
-
-XNORM := TABLE(TWISS,X)/sqrt(TABLE(TWISS,BETX));
-PXNORM := TABLE(TWISS,ALPHA)*TABLE(TWISS,X)/sqrt(TABLE(TWISS,BETX)) + TABLE(TWISS,PX)*sqrt(TABLE(TWISS,BETX));
-
-SELECT, FLAG=TWISS, CLEAR;
-SELECT, FLAG=TWISS, COLUMN = NAME, MUX, X, PX, XNORM, PXNORM;
-TWISS, BETA0=init, X=0.001, FILE="./out/madx/rot_test";
-
-
 
 
 
