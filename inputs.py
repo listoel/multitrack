@@ -220,7 +220,7 @@ def get_init(ring, btype="gaussian", scale=math.sqrt(12E-6/426.3156),
     normalization = ring.get_normalization()
 
     if dpp==0.0:
-        dpps = [0.0 for n in range(npart)]
+        dpps = [dpp_offset for n in range(npart)]
     else:
         dpps = np.random.uniform(dpp_offset-dpp, dpp_offset+dpp, npart)
 

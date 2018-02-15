@@ -55,6 +55,8 @@ if fulltrack:
 
 # Make some graphs
 cmap = cm.get_cmap('viridis')
+vmin = -0.0016
+vmax = 0.0016
 
 # Turn number extracted
 f, (ax1, ax2) = plt.subplots(1, 2)
@@ -70,9 +72,9 @@ ylim = (-175E-6,-35E-6)
 f, (ax1, ax2) = plt.subplots(1, 2, sharex=True, sharey=True)
 
 if not madxloss.empty:
-    madxloss.plot.scatter('X', 'PX', c='PT', cmap=cmap, ax=ax1, xlim=xlim, ylim=ylim)
+    madxloss.plot.scatter('X', 'PX', c='PT', cmap=cmap, ax=ax1, xlim=xlim, ylim=ylim, vmin=vmin, vmax=vmax)
 if not pyloss.empty:
-    pyloss.plot.scatter('X', 'PX', c='PT', cmap=cmap, ax=ax2, xlim=xlim, ylim=ylim)
+    pyloss.plot.scatter('X', 'PX', c='PT', cmap=cmap, ax=ax2, xlim=xlim, ylim=ylim, vmin=vmin, vmax=vmax)
 
 plt.show()
 
@@ -82,8 +84,8 @@ if fulltrack:
     ylim = (-3.8E-4,1.7E-4)
     f, (ax1, ax2) = plt.subplots(1, 2, sharex=True, sharey=True)
 
-    madxtracks.plot.scatter('X', 'PX', c='PT', cmap=cmap, ax=ax1, xlim=xlim, ylim=ylim)
-    pytracks.plot.scatter('X', 'PX', c='PT', cmap=cmap, ax=ax2, xlim=xlim, ylim=ylim)
+    madxtracks.plot.scatter('X', 'PX', c='PT', cmap=cmap, ax=ax1, xlim=xlim, ylim=ylim, vmin=vmin, vmax=vmax)
+    pytracks.plot.scatter('X', 'PX', c='PT', cmap=cmap, ax=ax2, xlim=xlim, ylim=ylim, vmin=vmin, vmax=vmax)
 
     plt.show()
 
@@ -93,8 +95,8 @@ if fulltrack:
     ylim = (-1.5E-4,1.5E-4)
     f, (ax1, ax2) = plt.subplots(1, 2, sharex=True, sharey=True)
 
-    madxtracks[madxtracks['TURN']==0].plot.scatter('X', 'PX', c='PT', cmap=cmap, ax=ax1, xlim=xlim, ylim=ylim)
-    pytracks[pytracks['TURN']==0].plot.scatter('X', 'PX', c='PT', cmap=cmap, ax=ax2, xlim=xlim, ylim=ylim)
+    madxtracks[madxtracks['TURN']==0].plot.scatter('X', 'PX', c='PT', cmap=cmap, ax=ax1, xlim=xlim, ylim=ylim, vmin=vmin, vmax=vmax)
+    pytracks[pytracks['TURN']==0].plot.scatter('X', 'PX', c='PT', cmap=cmap, ax=ax2, xlim=xlim, ylim=ylim, vmin=vmin, vmax=vmax)
 
     plt.show()
 
@@ -104,7 +106,7 @@ if not (madxloss.empty or pyloss.empty):
     ylim = (-3E-5,3E-5)
     x = madxloss['X'] - pyloss['X']
     y = madxloss['PX'] - pyloss['PX']
-    pd.concat([x, y, pyloss['PT']], axis=1).plot.scatter('X', 'PX', c='PT', cmap=cmap, xlim=xlim, ylim=ylim)
+    pd.concat([x, y, pyloss['PT']], axis=1).plot.scatter('X', 'PX', c='PT', cmap=cmap, xlim=xlim, ylim=ylim, vmin=vmin, vmax=vmax)
     plt.show()
 
 if fulltrack:
@@ -114,7 +116,7 @@ if fulltrack:
     pytracks.set_index(['NUMBER','TURN'], inplace=True)
     x = madxtracks['X'] - pytracks['X']
     y = madxtracks['PX'] - pytracks['PX']
-    pd.concat([x, y, pytracks['PT']], axis=1).plot.scatter('X', 'PX', c='PT', cmap=cmap, xlim=xlim, ylim=ylim)
+    pd.concat([x, y, pytracks['PT']], axis=1).plot.scatter('X', 'PX', c='PT', cmap=cmap, xlim=xlim, ylim=ylim, vmin=vmin, vmax=vmax)
     plt.show()
     
 

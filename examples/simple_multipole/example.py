@@ -12,7 +12,8 @@ import multitrack.dataprocessing as datproc
 
 npart = 5000
 chromatic = True
-thin = False
+thin = True
+dpp_offset = 0.0005
 
 use_fulltrack = True
 dispersive = True
@@ -61,7 +62,7 @@ extraction = mt.Extraction(alpha=0, beta=100, mu=np.pi/3,
 ring = mt.Ring([[0,{2:pyk2l, 3:pyk3l, 4:pyk4l},[dx_m,dp_m]]], tune=80.0/3, chroma=chroma)
 
 init = mt.get_init(ring, btype='gaussian', scale=2E-4, dpp=dpp,
-                   npart=npart, seed=0)
+                   dpp_offset=dpp_offset, npart=npart, seed=0)
 
 datproc.init_to_madx(ring, init, './out/mt/init.madx', alpha=0, beta=100, dx=dx_m, dp=dp_m)
 
