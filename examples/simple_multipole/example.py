@@ -12,15 +12,16 @@ import multitrack.dataprocessing as datproc
 
 npart = 5000
 chromatic = True
-thin = True
-dpp_offset = 0.0005
+chromaticelements = True
+thin = False
+dpp_offset = 0.0
 
 use_fulltrack = True
 dispersive = True
 nturns = 1000
 
-pyk2l = 210
-pyk3l = 0
+pyk2l = 350
+pyk3l = -0.2*pyk2l**2
 pyk4l = 0
 
 alpha_init = 0
@@ -59,7 +60,7 @@ extraction = mt.Extraction(alpha=0, beta=100, mu=np.pi/3,
                            dx=dx_ex, dp=dp_ex, xbump=0, pbump=0,
                            xwire=0.024, wirethickness=0.0002)
 
-ring = mt.Ring([[0,{2:pyk2l, 3:pyk3l, 4:pyk4l},[dx_m,dp_m]]], tune=80.0/3, chroma=chroma)
+ring = mt.Ring([[0,{2:pyk2l, 3:pyk3l, 4:pyk4l},[dx_m,dp_m]]], tune=2.0/3, chroma=chroma)
 
 init = mt.get_init(ring, btype='gaussian', scale=2E-4, dpp=dpp,
                    dpp_offset=dpp_offset, npart=npart, seed=0)
@@ -68,7 +69,8 @@ datproc.init_to_madx(ring, init, './out/mt/init.madx', alpha=0, beta=100, dx=dx_
 
 tracks, extractt = mt.track(ring, init, extraction=extraction,
                             dqstart=0.0, dqend=0.0,
-                            nturns=nturns, fulltrack=use_fulltrack)
+                            nturns=nturns, fulltrack=use_fulltrack,
+                            chromaticelements=chromaticelements)
 
 # Hacky plotting
 

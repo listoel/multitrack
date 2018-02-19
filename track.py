@@ -17,8 +17,9 @@ class ExtractIt(Exception):
 # For extracted particles non-normalized coords at zs are given.
 # For non-extracted particles final normalized coords at s=0 are given.
 
+# TODO tune sweep will not work! (anlges not updated...)
 def track(ring, init, extraction=None, dqstart=0.0, dqend=0.0,
-          nturns=10000, fulltrack=False):
+          nturns=10000, fulltrack=False, chromaticelements=True):
     """Generate particles from the beam and track them through the ring.
 
     Parameters
@@ -40,6 +41,9 @@ def track(ring, init, extraction=None, dqstart=0.0, dqend=0.0,
     fulltrack : bool, optional
         True to store full tracks of all particles, or False to store
         only the most recent coordinate.
+    chromaticelements: bool, optional
+        True to make momentum kick of elements in the ring dependent on
+        dpp. (default:True)
 
     Returns
     -------
@@ -106,29 +110,31 @@ def track(ring, init, extraction=None, dqstart=0.0, dqend=0.0,
         pbump = extraction.pbump
         xwire = extraction.xwire
 
-        wiretests = [extraction.wiretest(normalization,dppi) for dppi in init['dpp']]
+        init['pt'] = init['dpp']/(1+init['dpp'])
+
+        wiretests = [extraction.wiretest(normalization,pti) for pti in init['pt']]
         extractt = [-1 for i in range(npart)]
 
     # Track particles
-    tpdq_step = 2*math.pi*(dqend-dqstart)/nturns
+    reftune = ring.tune
+    dqq_step = (dqend-dqstart)/reftune/nturns
+    chromelem = 1
     for part in range(npart):
 
-        mydpp = init['dpp'].loc[part]
-        myinvdpp = 1/(1+mydpp)
+        mypt = init['pt'].loc[part]
+        if chromaticelements:
+            chromelem = 1/(1+init['dpp'].loc[part])
 
-        mydx = [m[2][0]*mydpp for m in elements]
-        mydp = [m[2][1]*mydpp for m in elements]
+        mydx = [m[2][0]*mypt for m in elements]
+        mydp = [m[2][1]*mypt for m in elements]
 
-        tpdq = 2*math.pi*dqstart
+        dqq = dqstart/reftune
         if ring.chroma is not None:
-            tpdq += 2*math.pi*ring.chroma*mydpp
+            dqq += ring.chroma/reftune*mypt
+        phasemod = 1.0 + dqq
 
         turnind = 0
         x, p = tracks[part, turnind, 0], tracks[part, turnind, 1]
-
-        phasemod = 1.0
-        if ring.chroma is not None:
-            phasemod = 1.0 + ring.chroma/ring.tune*mydpp
 
         # Cos and sin of phase advance between elements
         rotcos = [math.cos(elements[0][0]*phasemod)]
@@ -174,7 +180,7 @@ def track(ring, init, extraction=None, dqstart=0.0, dqend=0.0,
                             kick += strength(x+mydx[i], normalization)
                         else: #dipole/multipole kick
                             kick += strength*(x+mydx[i])**j
-                    p = p+kick*myinvdpp
+                    p = p+kick*chromelem
 
                     # If extraction point is between here and the next element, check for extraction
                     if iextr==i:
@@ -185,14 +191,14 @@ def track(ring, init, extraction=None, dqstart=0.0, dqend=0.0,
                 xn = cosfin*x + sinfin*p
                 pn = cosfin*p - sinfin*x
                 x, p = xn, pn
-                tpdq += tpdq_step
+                phasemod += dqq_step
                 tracks[part, turnind, 0] = x
                 tracks[part, turnind, 1] = p
         except ExtractIt:
             rotate = np.array(((cmuextr, smuextr), (-smuextr, cmuextr)))
             zstrans = np.dot(denorm, rotate/normalization)
             tracks[part, turnind] = (np.dot(zstrans, [x, p])
-                                     +disp_extr*mydpp
+                                     +disp_extr*mypt
                                      +[xbump, pbump])
 
     return tracks, extractt

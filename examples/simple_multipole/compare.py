@@ -67,8 +67,8 @@ pyloss['TURN'].hist(ax=ax2, bins=100)
 plt.show()
 
 # Extracted beam
-xlim = (0.023,0.041)
-ylim = (-175E-6,-35E-6)
+xlim = (0.023,0.043)
+ylim = (-2E-4,0)
 f, (ax1, ax2) = plt.subplots(1, 2, sharex=True, sharey=True)
 
 if not madxloss.empty:
@@ -80,8 +80,8 @@ plt.show()
 
 # Circulating beam
 if fulltrack:
-    xlim = (-0.03,0.035)
-    ylim = (-3.8E-4,1.7E-4)
+    xlim = (-0.035,0.035)
+    ylim = (-4.2E-4,1.7E-4)
     f, (ax1, ax2) = plt.subplots(1, 2, sharex=True, sharey=True)
 
     madxtracks.plot.scatter('X', 'PX', c='PT', cmap=cmap, ax=ax1, xlim=xlim, ylim=ylim, vmin=vmin, vmax=vmax)
@@ -102,8 +102,8 @@ if fulltrack:
 
 # Brag about stats
 if not (madxloss.empty or pyloss.empty):
-    xlim = (-0.017,0.017)
-    ylim = (-3E-5,3E-5)
+    xlim = (-0.02,0.02)
+    ylim = (-1E-4,1E-4)
     x = madxloss['X'] - pyloss['X']
     y = madxloss['PX'] - pyloss['PX']
     pd.concat([x, y, pyloss['PT']], axis=1).plot.scatter('X', 'PX', c='PT', cmap=cmap, xlim=xlim, ylim=ylim, vmin=vmin, vmax=vmax)

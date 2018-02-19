@@ -162,15 +162,15 @@ class Extraction:
             self.pbump = self.pbump*(xbump/self.xbump)
             self.xbump = xbump
 
-    def wiretest(self, normalization, dpp):
+    def wiretest(self, normalization, pt):
         """Find the normalized distance beyond which a particle is extracted.
 
         Parameters
         ----------
         normalization : float
             Normalization constant as explained in TODO. (TODO Units?)
-        dpp : float
-            Momentum deviation :math:`\\frac{\Delta p}{p_0}` for the
+        pt : float
+            Momentum deviation as in MAD-X for the
             particle to be tested for extraction.
 
         Returns
@@ -180,7 +180,7 @@ class Extraction:
             wires/blade or blade. (In meters.)
         """
         return (normalization
-                *(self.xwire-self.xbump-self.dx*dpp)
+                *(self.xwire-self.xbump-self.dx*pt)
                 /math.sqrt(self.beta))
 
 
@@ -217,6 +217,8 @@ def get_init(ring, btype="gaussian", scale=math.sqrt(12E-6/426.3156),
     dataframe
         Initial particle distribution
     """
+    np.random.seed(seed)
+
     normalization = ring.get_normalization()
 
     if dpp==0.0:

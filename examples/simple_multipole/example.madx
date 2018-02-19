@@ -4,8 +4,8 @@ fulltrack = 1;
 dispersion = 1;
 nturns = 1000;
 
-pyk2l = 210;
-pyk3l = 0;
+pyk2l = 350;
+pyk3l = -0.2*pyk2l^2;
 pyk4l = 0;
 
 
@@ -71,8 +71,8 @@ TWISS, FILE="./out/madx/toyring_optics_match";
 PLOT, TABLE=TWISS, HAXIS=S, VAXIS1=BETX,BETY, VAXIS2=MUX,MUY, VMIN=30,0, VMAX=110,0.7, COLOUR=100, FILE="./out/madx/plots";
 
 myk2l = -2.0*pyk2l/1000;
-myk4l = -6.0*pyk3l/10000;
-myk6l = -24.0*pyk4l/100000;
+myk3l = -6.0*pyk3l/10000;
+myk4l = -24.0*pyk4l/100000;
 USE, SEQUENCE=TOYRING;
 
 TWISS, FILE="./out/madx/toyring_optics_mult";
@@ -89,6 +89,7 @@ EALIGN, AREX=0.024-1.0;
 
 SYSTEM, "rm ./out/madx/tracks/*";
 
+OPTION, -WARN;
 IF (fulltrack==0) {
  TRACK, ONEPASS, APERTURE, RECLOSS;
   CALL, FILE='out/mt/init.madx';
@@ -101,6 +102,7 @@ ELSE {
   RUN, TURNS=nturns, MAXAPER={1.0,1.0,1.0,1.0,nturns,1.0}, FFILE=1;
  ENDTRACK;
 }
+OPTION, WARN;
 
 WRITE, TABLE = trackloss, FILE = 'out/madx/losses.tfs';
 
