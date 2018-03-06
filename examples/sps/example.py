@@ -11,7 +11,6 @@ import multitrack.dataprocessing as datproc
 #Settings
 npart = 5000
 chromatic = True
-chromaticelements = True
 thin = False
 dpp_offset = 0.0
 
@@ -87,8 +86,7 @@ datproc.init_to_madx(ring, init, './out/mt/init.madx', alpha=alpha_init, beta=be
 
 tracks, extractt = mt.track(ring, init, extraction=extraction,
                             dqstart=0.0, dqend=0.0,
-                            nturns=nturns, fulltrack=use_fulltrack,
-                            chromaticelements=chromaticelements)
+                            nturns=nturns, fulltrack=use_fulltrack)
 
 # Hacky plotting
 

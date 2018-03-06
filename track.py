@@ -19,7 +19,7 @@ class ExtractIt(Exception):
 
 # TODO tune sweep will not work! (anlges not updated...)
 def track(ring, init, extraction=None, dqstart=0.0, dqend=0.0,
-          nturns=10000, fulltrack=False, chromaticelements=True):
+          nturns=10000, fulltrack=False):
     """Generate particles from the beam and track them through the ring.
 
     Parameters
@@ -41,9 +41,6 @@ def track(ring, init, extraction=None, dqstart=0.0, dqend=0.0,
     fulltrack : bool, optional
         True to store full tracks of all particles, or False to store
         only the most recent coordinate.
-    chromaticelements: bool, optional
-        True to make momentum kick of elements in the ring dependent on
-        dpp. (default:True)
 
     Returns
     -------
@@ -118,12 +115,9 @@ def track(ring, init, extraction=None, dqstart=0.0, dqend=0.0,
     # Track particles
     reftune = ring.tune
     dqq_step = (dqend-dqstart)/reftune/nturns
-    chromelem = 1
     for part in range(npart):
 
         mypt = init['pt'].loc[part]
-        if chromaticelements:
-            chromelem = 1/(1+init['dpp'].loc[part])
 
         mydx = [m[2][0]*mypt for m in elements]
         mydp = [m[2][1]*mypt for m in elements]
@@ -180,7 +174,7 @@ def track(ring, init, extraction=None, dqstart=0.0, dqend=0.0,
                             kick += strength(x+mydx[i], normalization)
                         else: #dipole/multipole kick
                             kick += strength*(x+mydx[i])**j
-                    p = p+kick*chromelem
+                    p = p+kick
 
                     # If extraction point is between here and the next element, check for extraction
                     if iextr==i:
