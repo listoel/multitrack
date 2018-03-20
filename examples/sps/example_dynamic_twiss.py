@@ -16,7 +16,7 @@ sys.path.insert(1, '/afs/cern.ch/project/sloex/code/madxBatch')
 from python.dataprocessing import getsettings, readtfs
 
 # Settings for multitrack
-npart = 500#0
+npart = 1000
 chromatic = True
 thin = False
 dpp_offsets = list(np.arange(-0.0015,0.00150001,0.00005))
@@ -51,37 +51,41 @@ for i, dpp_offset in enumerate(dpp_offsets):
     alpha_ex = twiss.get_value('AP.UP.ZS21633','ALFX')
     beta_ex = twiss.get_value('AP.UP.ZS21633','BETX')
     mu_ex = twiss.get_value('AP.UP.ZS21633','MUX')
-    dx_ex = twiss.get_value('AP.UP.ZS21633','DX')/np.sqrt(beta_ex)
-    dp_ex = alpha_ex*dx_ex+twiss.get_value('AP.UP.ZS21633','DPX')*np.sqrt(beta_ex)
+    dx_ex = twiss.get_value('AP.UP.ZS21633','DX')
+    dp_ex = twiss.get_value('AP.UP.ZS21633','DPX')
     xbump_ex = twiss.get_value('AP.UP.ZS21633','X')
     pbump_ex = twiss.get_value('AP.UP.ZS21633','PX')
 
     alpha_m1 = twiss.get_value('LSE.10602','ALFX')
     beta_m1 = twiss.get_value('LSE.10602','BETX')
     mu_m1 = twiss.get_value('LSE.10602','MUX')
-    dx_m1 = twiss.get_value('LSE.10602','DX')/np.sqrt(beta_ex)
+    dx_m1 = twiss.get_value('LSE.10602','DX')/np.sqrt(beta_m1)
     dp_m1 = alpha_m1*dx_m1+twiss.get_value('LSE.10602','DPX')*np.sqrt(beta_m1)
+    xbump_m1 = twiss.get_value('LSE.10602','X')/np.sqrt(beta_m1)
     k2l_m1 = -0.5*madk2l*beta_m1**1.5
 
     alpha_m2 = twiss.get_value('LSE.22402','ALFX')
     beta_m2 = twiss.get_value('LSE.22402','BETX')
     mu_m2 = twiss.get_value('LSE.22402','MUX')
-    dx_m2 = twiss.get_value('LSE.22402','DX')/np.sqrt(beta_ex)
+    dx_m2 = twiss.get_value('LSE.22402','DX')/np.sqrt(beta_m2)
     dp_m2 = alpha_m1*dx_m2+twiss.get_value('LSE.10602','DPX')*np.sqrt(beta_m2)
+    xbump_m2 = twiss.get_value('LSE.22402','X')/np.sqrt(beta_m2)
     k2l_m2 = -0.5*madk2l*beta_m2**1.5
 
     alpha_m3 = twiss.get_value('LSE.40602','ALFX')
     beta_m3 = twiss.get_value('LSE.40602','BETX')
     mu_m3 = twiss.get_value('LSE.40602','MUX')
-    dx_m3 = twiss.get_value('LSE.40602','DX')/np.sqrt(beta_ex)
+    dx_m3 = twiss.get_value('LSE.40602','DX')/np.sqrt(beta_m3)
     dp_m3 = alpha_m3*dx_m3+twiss.get_value('LSE.10602','DPX')*np.sqrt(beta_m3)
+    xbump_m3 = twiss.get_value('LSE.40602','X')/np.sqrt(beta_m3)
     k2l_m3 = -0.5*madk2l*beta_m3**1.5
 
     alpha_m4 = twiss.get_value('LSE.52402','ALFX')
     beta_m4 = twiss.get_value('LSE.52402','BETX')
     mu_m4 = twiss.get_value('LSE.52402','MUX')
-    dx_m4 = twiss.get_value('LSE.52402','DX')/np.sqrt(beta_ex)
+    dx_m4 = twiss.get_value('LSE.52402','DX')/np.sqrt(beta_m4)
     dp_m4 = alpha_m4*dx_m1+twiss.get_value('LSE.52402','DPX')*np.sqrt(beta_m4)
+    xbump_m4 = twiss.get_value('LSE.52402','X')/np.sqrt(beta_m4)
     k2l_m4 = -0.5*madk2l*beta_m4**1.5
 
     if disphack:
@@ -103,10 +107,10 @@ for i, dpp_offset in enumerate(dpp_offsets):
                                dx=dx_ex, dp=dp_ex, xbump=xbump_ex, pbump=pbump_ex,
                                xwire=0.06795, wirethickness=0.0002)
 
-    ring = mt.Ring([[2*np.pi*mu_m1,{2:k2l_m1},[dx_m1,dp_m1]],
-                    [2*np.pi*mu_m2,{2:k2l_m2},[dx_m2,dp_m2]],
-                    [2*np.pi*mu_m3,{2:k2l_m3},[dx_m3,dp_m3]],
-                    [2*np.pi*mu_m4,{2:k2l_m4},[dx_m4,dp_m4]]],
+    ring = mt.Ring([[2*np.pi*mu_m1,{2:k2l_m1},[dx_m1,dp_m1],xbump_m1],
+                    [2*np.pi*mu_m2,{2:k2l_m2},[dx_m2,dp_m2],xbump_m2],
+                    [2*np.pi*mu_m3,{2:k2l_m3},[dx_m3,dp_m3],xbump_m3],
+                    [2*np.pi*mu_m4,{2:k2l_m4},[dx_m4,dp_m4],xbump_m4]],
                    tune=tune, chroma=chroma)
 
     init = mt.get_init(ring, btype='gaussian', scale=np.sqrt(12E-6/426.3156), dpp=dpp,

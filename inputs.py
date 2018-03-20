@@ -11,8 +11,9 @@ class Ring:
     elements: :obj:`list` of :obj:`list` of [int, :obj:`dict`]
         A list of elements, each defined by a phase advance in radians
         since the start of the ring and a dictionary of multipole
-        components, optionally folowed by the normalized dispersion vector
-        (otherwise presumed to be [0,0]) e.g. [[0,{2:K_2a,4:K_4a}],
+        components, optionally folowed by the normalized dispersion
+        vector and the normalized closed orbit position (if missing, these
+        are presumed to be [0,0] and 0) e.g. [[0,{2:K_2a,4:K_4a}],
         [1.12,{2:K_2b,3:K_3b},[0.001,-7E-4]],...]
     tune: float
         Fractional part of the machine tune. (In radians over

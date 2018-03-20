@@ -59,9 +59,22 @@ def track(ring, init, extraction=None, dqstart=0.0, dqend=0.0,
         print "ERROR: Final multipole beyond end of ring."
         exit()
 
-    # Add missing zero dispersion for ring elements
-    elements = [m if len(m)==3 else [m[0],m[1],[0,0]]
-                for m in ring.elements]
+    # Add missing zero orbit/dispersion for ring elements
+    def completemult(m):
+        if len(m)==4:
+            return m
+        if len(m)==3:
+            return [m[0],m[1],m[2],0]
+        if len(m)==2:
+            return [m[0],m[1],[0,0],0]
+        else:
+            print "ERROR: Invalid multipole found (need [mu,{type:str}<,disp<,x_co>>]):"
+            print m
+            exit()
+
+    elements = [completemult(m) for m in ring.elements]
+
+    x_co = [m[3] for m in elements]
 
 
     # Normalize based on K2 (virtual sextupole)
@@ -111,6 +124,8 @@ def track(ring, init, extraction=None, dqstart=0.0, dqend=0.0,
 
         wiretests = [extraction.wiretest(normalization,pti) for pti in init['pt']]
         extractt = [-1 for i in range(npart)]
+    else:
+        extractt = None
 
     # Track particles
     reftune = ring.tune
@@ -171,9 +186,9 @@ def track(ring, init, extraction=None, dqstart=0.0, dqend=0.0,
                     kick = 0
                     for j, strength in element[1].iteritems():
                         if j<0: # custom kick
-                            kick += strength(x+mydx[i], normalization)
+                            kick += strength(x+x_co[i]+mydx[i], normalization)
                         else: #dipole/multipole kick
-                            kick += strength*(x+mydx[i])**j
+                            kick += strength*(x+x_co[i]+mydx[i])**j
                     p = p+kick
 
                     # If extraction point is between here and the next element, check for extraction
