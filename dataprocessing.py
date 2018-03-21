@@ -1,4 +1,5 @@
 import math
+import matplotlib.cm as cm
 import matplotlib.pyplot as plt
 from matplotlib.ticker import NullFormatter
 import numpy as np
@@ -239,7 +240,7 @@ def histscatter(xdata, ydata, save="", xbin=None, ybin=None,
 
 
 def plotbeam(xdata, ydata, xstart=None, save="", color=None,
-             xlabel=r'$\hat{X}\ [1]$', ylabel=r'$\hat{P}\ [\mathrm{rad}]$', clim=[None,None]):
+             xlabel=r'$\hat{X}\ [1]$', ylabel=r'$\hat{P}\ [1]$', clim=[None,None]):
     """TODO documentation
     """
     fig, ax = plt.subplots()
@@ -262,7 +263,7 @@ def plotbeam(xdata, ydata, xstart=None, save="", color=None,
 
 
 def evolplot(tracks, lim, save="", xlabel=r'$\hat{X}\ [1]$',
-                ylabel=r'$\hat{P}\ [\mathrm{rad}]$'):
+                ylabel=r'$\hat{P}\ [1]$'):
     """TODO documentation
     """
     npart = tracks.shape[0]

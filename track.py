@@ -103,6 +103,9 @@ def track(ring, init, extraction=None, dqstart=0.0, dqend=0.0,
     tracks[:, 0, 1] = np.copy(init['P'].values)
 
     # Initialize extraction related stuff
+    if 'pt' not in init:
+        init['pt'] = init['dpp']/(1+init['dpp'])
+        
     iextr = -2
     if extraction is not None:
         iextr = -1
@@ -119,8 +122,6 @@ def track(ring, init, extraction=None, dqstart=0.0, dqend=0.0,
         xbump = extraction.xbump
         pbump = extraction.pbump
         xwire = extraction.xwire
-
-        init['pt'] = init['dpp']/(1+init['dpp'])
 
         wiretests = [extraction.wiretest(normalization,pti) for pti in init['pt']]
         extractt = [-1 for i in range(npart)]

@@ -222,21 +222,22 @@ def get_init(ring, btype="gaussian", scale=math.sqrt(12E-6/426.3156),
 
     normalization = ring.get_normalization()
 
-    if dpp==0.0:
-        dpps = [dpp_offset for n in range(npart)]
-    else:
-        dpps = np.random.uniform(dpp_offset-dpp, dpp_offset+dpp, npart)
-
     if btype=="gaussian":
         init = np.random.normal(0, scale*normalization, (npart, 2))
     elif btype=="explore":
-        init1 = np.array([[0, 0.1*i/scale] for i in range(-15,16)])
+        s, c = np.sin(np.pi/6), np.cos(np.pi/6)
+        init1 = np.array([[0, i/15.0*scale] for i in range(-15,16)])
         init2 = np.array([np.dot([[c,s],[-s,c]],v) for v in init1 if v[1]!=0])
         init = np.concatenate((init1,init2))
         npart = len(init)
     else:
         print 'ERROR: Desired beam type "'+btype+'" not recognized.'
         exit()
+
+    if dpp==0.0:
+        dpps = [dpp_offset for n in range(npart)]
+    else:
+        dpps = np.random.uniform(dpp_offset-dpp, dpp_offset+dpp, npart)
 
     return pd.DataFrame(data={'X': init[:,0], 'P': init[:,1], 'dpp': dpps})
 
