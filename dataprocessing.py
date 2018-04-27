@@ -233,7 +233,7 @@ def histscatter(xdata, ydata, save="", xbin=None, ybin=None,
     plt.axis('tight')
 
     if os.path.exists(os.path.dirname(save)):
-        plt.savefig(save)
+        plt.savefig(save,bbox_inches='tight')
         plt.clf()
     else:
         plt.show()
@@ -256,7 +256,7 @@ def plotbeam(xdata, ydata, xstart=None, save="", color=None,
     fig.tight_layout()
 
     if os.path.exists(os.path.dirname(save)):
-        plt.savefig(save)
+        plt.savefig(save,bbox_inches='tight')
         plt.clf()
     else:
         plt.show()
@@ -284,7 +284,7 @@ def evolplot(tracks, lim, save="", xlabel=r'$\hat{X}\ [1]$',
     fig.tight_layout()
 
     if os.path.exists(os.path.dirname(save)):
-        plt.savefig(save)
+        plt.savefig(save,bbox_inches='tight')
         plt.clf()
     else:
         plt.show()
