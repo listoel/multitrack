@@ -4,7 +4,7 @@ fulltrack = 1;
 dispersion = 1;
 nturns = 1000;
 
-pyk2l = 510;
+pyk2l = -510;
 pyk3l = 0;
 pyk4l = -0.24*pyk2l^3;
 
@@ -80,9 +80,9 @@ ENDMATCH;
 TWISS, FILE="./out/madx/toyring_optics_match";
 PLOT, TABLE=TWISS, HAXIS=S, VAXIS1=BETX,BETY, VAXIS2=MUX,MUY, VMIN=30,0, VMAX=110,0.7, COLOUR=100, FILE="./out/madx/plots";
 
-myk2l = -2.0*pyk2l/1000/3;
-myk3l = -6.0*pyk3l/10000/3;
-myk4l = -24.0*pyk4l/100000/3;
+myk2l = 2.0*pyk2l/1000/3;
+myk3l = 6.0*pyk3l/10000/3;
+myk4l = 24.0*pyk4l/100000/3;
 USE, SEQUENCE=TOYRING;
 
 TWISS, FILE="./out/madx/toyring_optics_mult";

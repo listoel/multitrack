@@ -20,7 +20,7 @@ use_fulltrack = True
 dispersive = True
 nturns = 1000
 
-pyk2l = 510
+pyk2l = -510
 pyk3l = 0
 pyk4l = -0.24*pyk2l**3
 
@@ -120,7 +120,7 @@ plt.scatter(xcirc,pcirc)
 plt.show()
 plt.scatter(xextr,pextr)
 plt.xlim(0.023,0.045)
-#plt.ylim(-50E-6,100E-6)
+plt.ylim(-50E-6,100E-6)
 plt.show()
 
 report = datproc.get_report(tracks, extractt, extraction)

@@ -38,7 +38,7 @@ extraction = mt.Extraction(alpha=alphazs, beta=betazs, mu=muzs,
                            dx=0, dp=0, xbump=0, pbump=0,
                            xwire=xwire, wirethickness=0.0002)
 
-k2 = 1000*mag6*np.sqrt(beta6)
+k2 = -1000*mag6*np.sqrt(beta6)
 kick = strms/1E3/betams
 septum = mt.simplems(kick, xcircms, xextrms, beta=betams)
 

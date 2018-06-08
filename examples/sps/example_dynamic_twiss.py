@@ -4,7 +4,6 @@ import numpy as np
 import os
 import sys
 
-import matplotlib.pyplot as plt
 cm = plt.cm.get_cmap('viridis')
 
 codedir = os.path.abspath('../../..')
@@ -62,7 +61,7 @@ for i, dpp_offset in enumerate(dpp_offsets):
     dx_m1 = twiss.get_value('LSE.10602','DX')/np.sqrt(beta_m1)
     dp_m1 = alpha_m1*dx_m1+twiss.get_value('LSE.10602','DPX')*np.sqrt(beta_m1)
     xbump_m1 = twiss.get_value('LSE.10602','X')/np.sqrt(beta_m1)
-    k2l_m1 = -0.5*madk2l*beta_m1**1.5
+    k2l_m1 = 0.5*madk2l*beta_m1**1.5
 
     alpha_m2 = twiss.get_value('LSE.22402','ALFX')
     beta_m2 = twiss.get_value('LSE.22402','BETX')
@@ -70,7 +69,7 @@ for i, dpp_offset in enumerate(dpp_offsets):
     dx_m2 = twiss.get_value('LSE.22402','DX')/np.sqrt(beta_m2)
     dp_m2 = alpha_m1*dx_m2+twiss.get_value('LSE.10602','DPX')*np.sqrt(beta_m2)
     xbump_m2 = twiss.get_value('LSE.22402','X')/np.sqrt(beta_m2)
-    k2l_m2 = -0.5*madk2l*beta_m2**1.5
+    k2l_m2 = 0.5*madk2l*beta_m2**1.5
 
     alpha_m3 = twiss.get_value('LSE.40602','ALFX')
     beta_m3 = twiss.get_value('LSE.40602','BETX')
@@ -78,7 +77,7 @@ for i, dpp_offset in enumerate(dpp_offsets):
     dx_m3 = twiss.get_value('LSE.40602','DX')/np.sqrt(beta_m3)
     dp_m3 = alpha_m3*dx_m3+twiss.get_value('LSE.10602','DPX')*np.sqrt(beta_m3)
     xbump_m3 = twiss.get_value('LSE.40602','X')/np.sqrt(beta_m3)
-    k2l_m3 = -0.5*madk2l*beta_m3**1.5
+    k2l_m3 = 0.5*madk2l*beta_m3**1.5
 
     alpha_m4 = twiss.get_value('LSE.52402','ALFX')
     beta_m4 = twiss.get_value('LSE.52402','BETX')
@@ -86,7 +85,7 @@ for i, dpp_offset in enumerate(dpp_offsets):
     dx_m4 = twiss.get_value('LSE.52402','DX')/np.sqrt(beta_m4)
     dp_m4 = alpha_m4*dx_m1+twiss.get_value('LSE.52402','DPX')*np.sqrt(beta_m4)
     xbump_m4 = twiss.get_value('LSE.52402','X')/np.sqrt(beta_m4)
-    k2l_m4 = -0.5*madk2l*beta_m4**1.5
+    k2l_m4 = 0.5*madk2l*beta_m4**1.5
 
     if disphack:
         dx_ex = 0

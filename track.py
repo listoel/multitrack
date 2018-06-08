@@ -121,7 +121,6 @@ def track(ring, init, extraction=None, dqstart=0.0, dqend=0.0,
 
         xbump = extraction.xbump
         pbump = extraction.pbump
-        xwire = extraction.xwire
 
         wiretests = [extraction.wiretest(normalization,pti) for pti in init['pt']]
         extractt = [-1 for i in range(npart)]
@@ -136,7 +135,6 @@ def track(ring, init, extraction=None, dqstart=0.0, dqend=0.0,
         mypt = init['pt'].loc[part]
 
         mydx = [m[2][0]*mypt for m in elements]
-        mydp = [m[2][1]*mypt for m in elements]
 
         dqq = dqstart/reftune
         if ring.chroma is not None:
@@ -189,7 +187,7 @@ def track(ring, init, extraction=None, dqstart=0.0, dqend=0.0,
                         if j<0: # custom kick
                             kick += strength(x+x_co[i]+mydx[i], normalization)
                         else: #dipole/multipole kick
-                            kick += strength*(x+x_co[i]+mydx[i])**j
+                            kick += -strength*(x+x_co[i]+mydx[i])**j
                     p = p+kick
 
                     # If extraction point is between here and the next element, check for extraction

@@ -19,8 +19,8 @@ use_fulltrack = True
 dispersive = True
 nturns = 1000
 
-pyk2l = 350
-pyk3l = -0.2*pyk2l**2
+pyk2l = -350
+pyk3l = 0.2*pyk2l**2
 pyk4l = 0
 
 alpha_init = 0
